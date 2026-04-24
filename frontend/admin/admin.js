@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     questions.forEach((q, index) => {
       const qDiv = document.createElement('div');
       qDiv.className = 'question-item';
+      const canMoveUp = q.ordre > 1;
+      const canMoveDown = q.ordre < questions.length;
 
       let filteredReponses = q.reponses || [];
       // Si la question est de type 'texte', on n'affiche que les réponses dont is_correct = true
@@ -218,8 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- L'affichage utilise maintenant l'ordre officiel issu de la base de données -->
             <h3 class="question-title">Question ${q.ordre} - ${q.intitule}</h3>
             <span class="help-text">Type : ${q.type} | ID : ${q.id}</span>
+            <div class="question-hint-line">
+              <span class="help-text">Indice : ${q.indice && q.indice.trim() !== '' ? q.indice : '<i>Aucun</i>'}</span>
+              <button class="btn-secondary btn-hint" onclick="editQuestionIndice(${q.id})">Modifier l'indice</button>
+              <button class="btn-secondary btn-hint" onclick="deleteQuestionIndice(${q.id})">Supprimer l'indice</button>
+            </div>
           </div>
-          <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">Supprimer</button>
+          <div class="question-actions">
+            <button class="btn-secondary btn-order" ${canMoveUp ? '' : 'disabled'} onclick="moveQuestion(${q.id}, ${q.ordre - 1})" title="Monter la question">↑</button>
+            <button class="btn-secondary btn-order" ${canMoveDown ? '' : 'disabled'} onclick="moveQuestion(${q.id}, ${q.ordre + 1})" title="Descendre la question">↓</button>
+            <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">Supprimer</button>
+          </div>
         </div>
         ${answersHtml}
         <div class="add-quick-answer-container" style="margin-top: 1rem;">
@@ -234,6 +245,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
       questionsListContainer.appendChild(qDiv);
     });
+  }
+
+  window.moveQuestion = async function (id, newOrdre) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/questions/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: id,
+          new_ordre: newOrdre
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showMessage('Ordre des questions mis à jour.', 'success');
+        loadAdminQuestions();
+      } else {
+        showMessage(data.error || 'Erreur lors du réordonnancement.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
+  }
+
+  window.editQuestionIndice = async function (id) {
+    const newIndice = prompt('Entrez le nouvel indice :');
+    if (newIndice === null) {
+      return;
+    }
+
+    const trimmedIndice = newIndice.trim();
+    if (trimmedIndice === '') {
+      showMessage('Indice vide. Utilisez le bouton Supprimer l\'indice.', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/questions/${id}/indice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ indice: trimmedIndice })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showMessage('Indice mis à jour.', 'success');
+        loadAdminQuestions();
+      } else {
+        showMessage(data.error || 'Erreur lors de la mise à jour de l\'indice.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
+  }
+
+  window.deleteQuestionIndice = async function (id) {
+    if (!confirm('Supprimer l\'indice de cette question ?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/questions/${id}/indice`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showMessage('Indice supprimé.', 'success');
+        loadAdminQuestions();
+      } else {
+        showMessage(data.error || 'Erreur lors de la suppression de l\'indice.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
   }
 
   // Celles-ci doivent être globales pour les onclick

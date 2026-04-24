@@ -148,5 +148,115 @@ class QuestionRepository {
 
         return false;
     }
+
+    /**
+     * Mettre à jour l'indice d'une question
+     */
+    public function updateQuestionIndice($id, $indice) {
+        $sql = "UPDATE questions SET indice = :indice WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            ':indice' => $indice,
+            ':id' => $id
+        ]);
+    }
+
+    /**
+     * Supprimer l'indice d'une question
+     */
+    public function clearQuestionIndice($id) {
+        $sql = "UPDATE questions SET indice = NULL WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
+
+    /**
+     * Déplacer une question vers une nouvelle position d'ordre
+     * IMPORTANT: les réponses sont liées à l'ordre, elles doivent être déplacées aussi.
+     */
+    public function moveQuestionToOrder($questionId, $newOrdre) {
+        $stmtCurrent = $this->pdo->prepare("SELECT ordre FROM questions WHERE id = :id");
+        $stmtCurrent->execute([':id' => $questionId]);
+        $currentRow = $stmtCurrent->fetch(PDO::FETCH_ASSOC);
+
+        if (!$currentRow) {
+            return ['success' => false, 'error' => 'Question non trouvée'];
+        }
+
+        $currentOrdre = (int)$currentRow['ordre'];
+
+        $stmtMax = $this->pdo->query("SELECT MAX(ordre) AS max_ordre FROM questions");
+        $maxRow = $stmtMax->fetch(PDO::FETCH_ASSOC);
+        $maxOrdre = $maxRow && $maxRow['max_ordre'] !== null ? (int)$maxRow['max_ordre'] : 0;
+
+        if ($newOrdre < 1 || $newOrdre > $maxOrdre) {
+            return ['success' => false, 'error' => 'Nouvel ordre invalide'];
+        }
+
+        if ($newOrdre === $currentOrdre) {
+            return ['success' => true];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // Place temporairement la question et ses réponses hors de la plage.
+            $tmpOrdre = 0;
+            $stmtTmpQ = $this->pdo->prepare("UPDATE questions SET ordre = :tmp WHERE id = :id");
+            $stmtTmpQ->execute([':tmp' => $tmpOrdre, ':id' => $questionId]);
+
+            $stmtTmpR = $this->pdo->prepare("UPDATE reponses SET ordre = :tmp WHERE ordre = :current");
+            $stmtTmpR->execute([':tmp' => $tmpOrdre, ':current' => $currentOrdre]);
+
+            if ($newOrdre < $currentOrdre) {
+                // Ex: 3 -> 2 : les questions/réponses [2..2] deviennent [3..3]
+                $stmtShiftQ = $this->pdo->prepare(
+                    "UPDATE questions SET ordre = ordre + 1 WHERE ordre >= :newOrdre AND ordre < :currentOrdre"
+                );
+                $stmtShiftQ->execute([
+                    ':newOrdre' => $newOrdre,
+                    ':currentOrdre' => $currentOrdre
+                ]);
+
+                $stmtShiftR = $this->pdo->prepare(
+                    "UPDATE reponses SET ordre = ordre + 1 WHERE ordre >= :newOrdre AND ordre < :currentOrdre"
+                );
+                $stmtShiftR->execute([
+                    ':newOrdre' => $newOrdre,
+                    ':currentOrdre' => $currentOrdre
+                ]);
+            } else {
+                // Ex: 2 -> 4 : les questions/réponses [3..4] deviennent [2..3]
+                $stmtShiftQ = $this->pdo->prepare(
+                    "UPDATE questions SET ordre = ordre - 1 WHERE ordre <= :newOrdre AND ordre > :currentOrdre"
+                );
+                $stmtShiftQ->execute([
+                    ':newOrdre' => $newOrdre,
+                    ':currentOrdre' => $currentOrdre
+                ]);
+
+                $stmtShiftR = $this->pdo->prepare(
+                    "UPDATE reponses SET ordre = ordre - 1 WHERE ordre <= :newOrdre AND ordre > :currentOrdre"
+                );
+                $stmtShiftR->execute([
+                    ':newOrdre' => $newOrdre,
+                    ':currentOrdre' => $currentOrdre
+                ]);
+            }
+
+            // Réinsère la question déplacée et ses réponses à la nouvelle position.
+            $stmtFinalQ = $this->pdo->prepare("UPDATE questions SET ordre = :newOrdre WHERE id = :id");
+            $stmtFinalQ->execute([':newOrdre' => $newOrdre, ':id' => $questionId]);
+
+            $stmtFinalR = $this->pdo->prepare("UPDATE reponses SET ordre = :newOrdre WHERE ordre = :tmp");
+            $stmtFinalR->execute([':newOrdre' => $newOrdre, ':tmp' => $tmpOrdre]);
+
+            $this->pdo->commit();
+            return ['success' => true];
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
 }
 ?>

@@ -182,6 +182,93 @@ class QuestionController {
     }
 
     /**
+     * Réordonner une question
+     * POST /api/questions/reorder
+     * Body: { id: number, new_ordre: number }
+     */
+    public function reorderQuestion() {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        if (!$data || !isset($data['id']) || !isset($data['new_ordre'])) {
+            return $this->respondJson(['error' => 'Données invalides'], 400);
+        }
+
+        $id = (int)$data['id'];
+        $newOrdre = (int)$data['new_ordre'];
+
+        if ($id <= 0 || $newOrdre <= 0) {
+            return $this->respondJson(['error' => 'Paramètres invalides'], 400);
+        }
+
+        $result = $this->questionRepository->moveQuestionToOrder($id, $newOrdre);
+        if (!isset($result['success']) || !$result['success']) {
+            return $this->respondJson([
+                'error' => isset($result['error']) ? $result['error'] : 'Erreur lors du réordonnancement'
+            ], 400);
+        }
+
+        return $this->respondJson([
+            'success' => true,
+            'message' => 'Ordre de la question mis à jour'
+        ]);
+    }
+
+    /**
+     * Mettre à jour l'indice d'une question
+     * POST /api/questions/{id}/indice
+     */
+    public function updateQuestionIndice($id) {
+        $question = $this->questionRepository->getQuestionById($id);
+        if (!$question) {
+            return $this->respondJson(['error' => 'Question non trouvée'], 404);
+        }
+
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        if (!$data || !isset($data['indice'])) {
+            return $this->respondJson(['error' => 'Données invalides'], 400);
+        }
+
+        $indice = trim((string)$data['indice']);
+        if ($indice === '') {
+            return $this->respondJson(['error' => 'Indice vide. Utilisez la suppression d\'indice.'], 400);
+        }
+
+        $success = $this->questionRepository->updateQuestionIndice((int)$id, $indice);
+        if (!$success) {
+            return $this->respondJson(['error' => 'Erreur lors de la mise à jour de l\'indice'], 500);
+        }
+
+        return $this->respondJson([
+            'success' => true,
+            'message' => 'Indice mis à jour'
+        ]);
+    }
+
+    /**
+     * Supprimer l'indice d'une question
+     * DELETE /api/questions/{id}/indice
+     */
+    public function deleteQuestionIndice($id) {
+        $question = $this->questionRepository->getQuestionById($id);
+        if (!$question) {
+            return $this->respondJson(['error' => 'Question non trouvée'], 404);
+        }
+
+        $success = $this->questionRepository->clearQuestionIndice((int)$id);
+        if (!$success) {
+            return $this->respondJson(['error' => 'Erreur lors de la suppression de l\'indice'], 500);
+        }
+
+        return $this->respondJson([
+            'success' => true,
+            'message' => 'Indice supprimé'
+        ]);
+    }
+
+    /**
      * Supprimer une réponse
      * DELETE /api/reponses/{id}
      */

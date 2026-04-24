@@ -91,6 +91,13 @@ if (empty($remaining_path)) {
         if (count($remaining_path) === 1) {
             // POST /api/questions (Backoffice - Ajouter Question)
             $controller->createQuestionWithAnswers();
+        } elseif (count($remaining_path) === 2 && $remaining_path[1] === 'reorder') {
+            // POST /api/questions/reorder
+            $controller->reorderQuestion();
+        } elseif (count($remaining_path) === 3 && $remaining_path[2] === 'indice') {
+            // POST /api/questions/{id}/indice
+            $id = $remaining_path[1];
+            $controller->updateQuestionIndice($id);
         } else {
              http_response_code(404);
              echo json_encode(['error' => 'Route non trouvée']);
@@ -101,6 +108,10 @@ if (empty($remaining_path)) {
             // DELETE /api/questions/{id}
             $id = $remaining_path[1];
             $controller->deleteQuestion($id);
+        } elseif (count($remaining_path) === 3 && $remaining_path[2] === 'indice') {
+            // DELETE /api/questions/{id}/indice
+            $id = $remaining_path[1];
+            $controller->deleteQuestionIndice($id);
         }
     } else {
         http_response_code(405);
