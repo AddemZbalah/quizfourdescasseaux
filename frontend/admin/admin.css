@@ -1,18 +1,22 @@
-/* Variables de couleurs minimalistes classiques */
+@import url('https://fonts.googleapis.com/css2?family=Cabin:wght@600&family=Inter:wght@400;500;700&display=swap');
+
+/* Variables de couleurs de l'application (Four des Casseaux) */
 :root {
-    --primary-color: #2b6cb0;
-    --primary-hover: #2c5282;
-    --background: #f7fafc;
+    --primary-color: #2d114b;
+    --primary-hover: #421b6d;
+    --background: #f5f1ee;
     --surface: #ffffff;
-    --text-main: #2d3748;
-    --text-muted: #718096;
-    --border: #e2e8f0;
+    --text-main: #2d114b;
+    --text-muted: #7f8082;
+    --border: #bd672e;
     --danger: #e53e3e;
     --success: #38a169;
+    --font-sans: "Inter", sans-serif;
+    --font-title: "Cabin", sans-serif;
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-sans);
     background-color: var(--background);
     color: var(--text-main);
     margin: 0;
@@ -35,6 +39,8 @@ h1 {
     margin-bottom: 20px;
     text-align: center;
     color: var(--primary-color);
+    font-family: var(--font-title);
+    text-transform: uppercase;
 }
 
 h2 {
@@ -100,6 +106,54 @@ input[type="text"]:focus, select:focus {
     align-items: center;
     gap: 5px;
     margin: 0;
+}
+
+/* Liste des questions existantes */
+.list-container {
+    margin-top: 30px;
+}
+
+.question-item {
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: #fafafa;
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.question-title {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.answer-list {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.answer-list li {
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.correct-badge {
+    background-color: var(--success);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 10px;
 }
 
 /* Boutons */

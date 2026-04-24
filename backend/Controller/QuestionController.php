@@ -38,6 +38,18 @@ class QuestionController {
     }
 
     /**
+     * Récupérer toutes les questions AVEC leurs réponses pour l'admin
+     * GET /api/questions-details
+     */
+    public function getAllQuestionsWithAnswers() {
+        $questions = $this->questionRepository->getAllQuestions();
+        foreach ($questions as &$q) {
+            $q['reponses'] = $this->reponseRepository->getReponsesByQuestionId($q['id']);
+        }
+        return $this->respondJson(['questions' => $questions]);
+    }
+
+    /**
      * Récupérer les réponses possibles d'une question
      * GET /api/questions/{id}/reponses
      */
@@ -102,6 +114,30 @@ class QuestionController {
             $this->pdo->rollBack();
             return $this->respondJson(['error' => 'Erreur lors de la création : ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Supprimer une question (et ses réponses en cascade)
+     * DELETE /api/questions/{id}
+     */
+    public function deleteQuestion($id) {
+        $success = $this->questionRepository->deleteQuestion($id);
+        if ($success) {
+            return $this->respondJson(['success' => true, 'message' => 'Question supprimée']);
+        }
+        return $this->respondJson(['error' => 'Erreur lors de la suppression de la question'], 500);
+    }
+
+    /**
+     * Supprimer une réponse
+     * DELETE /api/reponses/{id}
+     */
+    public function deleteAnswer($id) {
+        $success = $this->reponseRepository->deleteReponse($id);
+        if ($success) {
+            return $this->respondJson(['success' => true, 'message' => 'Réponse supprimée']);
+        }
+        return $this->respondJson(['error' => 'Erreur lors de la suppression de la réponse'], 500);
     }
 
     /**

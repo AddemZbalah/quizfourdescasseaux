@@ -90,5 +90,14 @@ class ReponseRepository {
             ':is_correct' => (int) $isCorrect // Convert boolean to integer for SQL
         ]);
     }
+
+    /**
+     * Supprimer une réponse
+     */
+    public function deleteReponse($id) {
+        $sql = "DELETE FROM reponses WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
 }
 ?>

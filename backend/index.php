@@ -76,12 +76,27 @@ if (empty($remaining_path)) {
              http_response_code(404);
              echo json_encode(['error' => 'Route non trouvée']);
         }
+    } elseif ($method === 'DELETE') {
+        if (count($remaining_path) === 2) {
+            // DELETE /api/questions/{id}
+            $id = $remaining_path[1];
+            $controller->deleteQuestion($id);
+        }
     } else {
         http_response_code(405);
         echo json_encode(['error' => 'Méthode non autorisée']);
     }
-} else {
-    http_response_code(404);
-    echo json_encode(['error' => 'Route non trouvée']);
-}
+} elseif ($remaining_path[0] === 'reponses') {
+    if ($method === 'DELETE') {
+        if (count($remaining_path) === 2) {
+            // DELETE /api/reponses/{id}
+            $id = $remaining_path[1];
+            $controller->deleteAnswer($id);
+        }
+    }
+} elseif ($remaining_path[0] === 'questions-details') {
+    if ($method === 'GET') {
+        // GET /api/questions-details
+        $controller->getAllQuestionsWithAnswers();
+    }
 ?>

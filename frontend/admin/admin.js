@@ -1,6 +1,6 @@
-// Configuration de l'URL du Backend API
-const API_BASE_URL = 'http://localhost/quiz-four_des_casseaux/backend/api';
-// (Ajuster localhost si ton backend est sur un port / nom de domaine différent)
+// L'URL de ton API en production !
+// On pointe directement vers le backend sécurisé
+const API_BASE_URL = 'https://espaceporcelaine.com/Quiz/backend/api';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionForm.reset();
         answersContainer.innerHTML = '';
         addAnswerRow(); // Remet un champ vide
+        loadAdminQuestions(); // Recharger la liste en bas
       } else {
         showMessage(data.error || 'Erreur lors de la création de la question.', 'error');
       }
@@ -129,6 +130,107 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('submitBtn').disabled = false;
     }
   });
+
+  // ========== GESTION DE L'AFFICHAGE DES QUESTIONS ==========
+
+  const questionsListContainer = document.getElementById('questionsList');
+
+  async function loadAdminQuestions() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/questions-details`);
+      const data = await response.json();
+
+      if (response.ok && data.questions) {
+        renderQuestionsList(data.questions);
+      } else {
+        questionsListContainer.innerHTML = '<p>Erreur lors du chargement des questions.</p>';
+      }
+    } catch (error) {
+      console.error("Erreur HTTP:", error);
+      questionsListContainer.innerHTML = '<p>Impossible de joindre le serveur.</p>';
+    }
+  }
+
+  function renderQuestionsList(questions) {
+    if (questions.length === 0) {
+      questionsListContainer.innerHTML = '<p>Aucune question pour le moment.</p>';
+      return;
+    }
+
+    questionsListContainer.innerHTML = '';
+
+    questions.forEach(q => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'question-item';
+
+      let answersHtml = '<ul class="answer-list">';
+      if (q.reponses && q.reponses.length > 0) {
+        q.reponses.forEach(rep => {
+          const badge = rep.is_correct ? '<span class="correct-badge">Vrai</span>' : '';
+          answersHtml += `
+            <li>
+              <span>${rep.intitule} ${badge}</span>
+              <button class="btn-remove" onclick="deleteAnswer(${rep.id})" title="Supprimer la réponse">✕</button>
+            </li>
+          `;
+        });
+      } else {
+        answersHtml += '<li><i>Aucune réponse configurée</i></li>';
+      }
+      answersHtml += '</ul>';
+
+      qDiv.innerHTML = `
+        <div class="question-header">
+          <div>
+            <h3 class="question-title">#${q.id} - ${q.intitule}</h3>
+            <span class="help-text">Type : ${q.type}</span>
+          </div>
+          <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">🗑️ Supprimer</button>
+        </div>
+        ${answersHtml}
+      `;
+
+      questionsListContainer.appendChild(qDiv);
+    });
+  }
+
+  // Celles-ci doivent être globales pour les onclick
+  window.deleteQuestion = async function (id) {
+    if (!confirm('Es-tu sûr de vouloir supprimer cette question (les réponses associées seront également supprimées) ?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/questions/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        showMessage('Question supprimée avec succès.', 'success');
+        loadAdminQuestions(); // Recharger la liste
+      } else {
+        const data = await response.json();
+        showMessage(data.error || 'Erreur lors de la suppression.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
+  }
+
+  window.deleteAnswer = async function (id) {
+    if (!confirm('Es-tu sûr de vouloir supprimer cette réponse ?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reponses/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        showMessage('Réponse supprimée avec succès.', 'success');
+        loadAdminQuestions(); // Recharger la liste
+      } else {
+        const data = await response.json();
+        showMessage(data.error || 'Erreur lors de la suppression.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
+  }
+
+  // Charger les questions au démarrage de la page
+  loadAdminQuestions();
 
   // Fonctions utilitaires d'affichage de messages
   function showMessage(message, type = 'error') {

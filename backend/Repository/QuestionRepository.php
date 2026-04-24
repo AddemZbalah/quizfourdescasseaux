@@ -110,5 +110,14 @@ class QuestionRepository {
 
         return $this->pdo->lastInsertId();
     }
+
+    /**
+     * Supprimer une question
+     */
+    public function deleteQuestion($id) {
+        $sql = "DELETE FROM questions WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([':id' => $id]);
+    }
 }
 ?>
