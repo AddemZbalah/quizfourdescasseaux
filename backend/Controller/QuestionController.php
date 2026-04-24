@@ -43,8 +43,8 @@ class QuestionController {
      */
     public function getAllQuestionsWithAnswers() {
         $questions = $this->questionRepository->getAllQuestions();
-        foreach ($questions as &$q) {
-            $q['reponses'] = $this->reponseRepository->getReponsesByQuestionId($q['id']);
+        foreach ($questions as $key => $q) {
+            $questions[$key]['reponses'] = $this->reponseRepository->getReponsesByQuestionId($q['ordre']);
         }
         return $this->respondJson(['questions' => $questions]);
     }
@@ -54,7 +54,12 @@ class QuestionController {
      * GET /api/questions/{id}/reponses
      */
     public function getAnswersByQuestion($questionId) {
-        $reponses = $this->reponseRepository->getReponsesByQuestionId($questionId);
+        $question = $this->questionRepository->getQuestionById($questionId);
+        if (!$question) {
+            return $this->respondJson(['error' => 'Question non trouvée'], 404);
+        }
+        
+        $reponses = $this->reponseRepository->getReponsesByQuestionId($question->ordre);
 
         if (empty($reponses)) {
             return $this->respondJson(['error' => 'Aucune réponse trouvée'], 404);
@@ -85,6 +90,10 @@ class QuestionController {
 
             // Créer la question
             $questionId = $this->questionRepository->createQuestion($intitule, $indice, $type);
+            
+            // On récupère la question créée pour avoir son "ordre"
+            $questionCreee = $this->questionRepository->getQuestionById($questionId);
+            $ordreId = $questionCreee->ordre;
 
             // Créer les réponses (si présentes)
             foreach ($reponses as $rep) {
@@ -94,7 +103,7 @@ class QuestionController {
                     $repType = isset($rep['type']) ? $rep['type'] : $type;
                     
                     $this->reponseRepository->createReponse(
-                        $questionId, 
+                        $ordreId, 
                         trim($rep['intitule']), 
                         $repType, 
                         (bool)$rep['is_correct']

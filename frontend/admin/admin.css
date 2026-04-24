@@ -25,9 +25,28 @@ body {
     justify-content: center;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+.admin-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+@media (min-width: 900px) {
+    .admin-wrapper {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
 .admin-container {
     width: 100%;
-    max-width: 600px;
+    flex: 1;
     background-color: var(--surface);
     padding: 30px;
     border-radius: 8px;
@@ -110,7 +129,7 @@ input[type="text"]:focus, select:focus {
 
 /* Liste des questions existantes */
 .list-container {
-    margin-top: 30px;
+    margin-top: 0;
 }
 
 .question-item {

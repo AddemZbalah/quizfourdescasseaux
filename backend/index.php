@@ -99,4 +99,8 @@ if (empty($remaining_path)) {
         // GET /api/questions-details
         $controller->getAllQuestionsWithAnswers();
     }
+} else {
+    http_response_code(404);
+    echo json_encode(['error' => 'Route non trouvée']);
+}
 ?>

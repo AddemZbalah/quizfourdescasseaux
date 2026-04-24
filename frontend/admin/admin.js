@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadAdminQuestions() {
     try {
-      const response = await fetch(`${API_BASE_URL}/questions-details`);
+      // { cache: 'no-store' } + paramètre ?t=... force le navigateur et le serveur (Hostinger) à ne pas mettre en cache
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_BASE_URL}/questions-details?t=${timestamp}`, { cache: 'no-store' });
       const data = await response.json();
 
       if (response.ok && data.questions) {
@@ -159,13 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     questionsListContainer.innerHTML = '';
 
-    questions.forEach(q => {
+    questions.forEach((q, index) => {
       const qDiv = document.createElement('div');
       qDiv.className = 'question-item';
 
+      let filteredReponses = q.reponses || [];
+      // Si la question est de type 'texte', on n'affiche que les réponses dont is_correct = true
+      if (q.type === 'texte') {
+        filteredReponses = filteredReponses.filter(r => r.is_correct);
+      }
+
       let answersHtml = '<ul class="answer-list">';
-      if (q.reponses && q.reponses.length > 0) {
-        q.reponses.forEach(rep => {
+      if (filteredReponses.length > 0) {
+        filteredReponses.forEach(rep => {
           const badge = rep.is_correct ? '<span class="correct-badge">Vrai</span>' : '';
           answersHtml += `
             <li>
@@ -182,10 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
       qDiv.innerHTML = `
         <div class="question-header">
           <div>
-            <h3 class="question-title">#${q.id} - ${q.intitule}</h3>
-            <span class="help-text">Type : ${q.type}</span>
+            <!-- L'affichage utilise maintenant l'ordre officiel issu de la base de données -->
+            <h3 class="question-title">Question ${q.ordre} - ${q.intitule}</h3>
+            <span class="help-text">Type : ${q.type} | ID : ${q.id}</span>
           </div>
-          <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">🗑️ Supprimer</button>
+          <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">Supprimer</button>
         </div>
         ${answersHtml}
       `;

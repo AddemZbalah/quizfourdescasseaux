@@ -14,7 +14,7 @@ class QuestionRepository {
      * Récupérer une question avec ses réponses
      */
     public function getQuestionWithAnswers($questionId) {
-        $sql = "SELECT id, intitule, indice, type FROM questions WHERE id = :id";
+        $sql = "SELECT id, intitule, indice, type, ordre FROM questions WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $questionId]);
         $questionData = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -27,19 +27,20 @@ class QuestionRepository {
             $questionData['id'],
             $questionData['intitule'],
             $questionData['indice'],
-            $questionData['type']
+            $questionData['type'],
+            $questionData['ordre']
         );
 
-        // Récupérer les réponses possibles
-        $sql = "SELECT id, question_id, intitule, type, is_correct FROM reponses WHERE question_id = :question_id";
+        // Récupérer les réponses possibles en utilisant l'ordre
+        $sql = "SELECT id, ordre, intitule, type, is_correct FROM reponses WHERE ordre = :ordre";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':question_id' => $questionId]);
+        $stmt->execute([':ordre' => $questionData['ordre']]);
         $reponses = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $reponse = new Reponse(
                 $row['id'],
-                $row['question_id'],
+                $row['ordre'],
                 $row['intitule'],
                 $row['type'],
                 $row['is_correct']
@@ -57,7 +58,7 @@ class QuestionRepository {
      * Récupérer toutes les questions
      */
     public function getAllQuestions() {
-        $sql = "SELECT id, intitule, indice, type FROM questions";
+        $sql = "SELECT id, intitule, indice, type, ordre FROM questions ORDER BY ordre ASC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         $questions = [];
@@ -67,7 +68,8 @@ class QuestionRepository {
                 $row['id'],
                 $row['intitule'],
                 $row['indice'],
-                $row['type']
+                $row['type'],
+                $row['ordre']
             );
             $questions[] = $question->toArray();
         }
@@ -79,7 +81,7 @@ class QuestionRepository {
      * Récupérer une question par ID
      */
     public function getQuestionById($id) {
-        $sql = "SELECT id, intitule, indice, type FROM questions WHERE id = :id";
+        $sql = "SELECT id, intitule, indice, type, ordre FROM questions WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -92,7 +94,8 @@ class QuestionRepository {
             $row['id'],
             $row['intitule'],
             $row['indice'],
-            $row['type']
+            $row['type'],
+            $row['ordre']
         );
     }
 
@@ -100,12 +103,18 @@ class QuestionRepository {
      * Créer une nouvelle question et retourner son ID généré
      */
     public function createQuestion($intitule, $indice, $type) {
-        $sql = "INSERT INTO questions (intitule, indice, type) VALUES (:intitule, :indice, :type)";
+        // Trouver la valeur d'ordre la plus haute actuelle
+        $stmtOrdre = $this->pdo->query("SELECT MAX(ordre) as max_ordre FROM questions");
+        $row = $stmtOrdre->fetch(PDO::FETCH_ASSOC);
+        $nextOrdre = $row && $row['max_ordre'] !== null ? (int)$row['max_ordre'] + 1 : 1;
+
+        $sql = "INSERT INTO questions (intitule, indice, type, ordre) VALUES (:intitule, :indice, :type, :ordre)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             ':intitule' => $intitule,
             ':indice' => $indice,
-            ':type' => $type
+            ':type' => $type,
+            ':ordre' => $nextOrdre
         ]);
 
         return $this->pdo->lastInsertId();
@@ -115,9 +124,29 @@ class QuestionRepository {
      * Supprimer une question
      */
     public function deleteQuestion($id) {
-        $sql = "DELETE FROM questions WHERE id = :id";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([':id' => $id]);
+        // Obtenir d'abord l'ordre de la question supprimée
+        $stmtGet = $this->pdo->prepare("SELECT ordre FROM questions WHERE id = :id");
+        $stmtGet->execute([':id' => $id]);
+        $row = $stmtGet->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            $deletedOrdre = $row['ordre'];
+
+            // Supprimer la question
+            $sql = "DELETE FROM questions WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $result = $stmt->execute([':id' => $id]);
+
+            if ($result && $deletedOrdre !== null) {
+                // Décrémenter l'ordre des questions suivantes de 1
+                $sqlUpdate = "UPDATE questions SET ordre = ordre - 1 WHERE ordre > :deletedOrdre ORDER BY ordre ASC";
+                $stmtUpdate = $this->pdo->prepare($sqlUpdate);
+                $stmtUpdate->execute([':deletedOrdre' => $deletedOrdre]);
+            }
+            return $result;
+        }
+
+        return false;
     }
 }
 ?>
