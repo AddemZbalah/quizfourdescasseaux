@@ -1,26 +1,44 @@
 <?php
 
+// Démarrer la session au tout début
+session_start();
+
 require_once __DIR__ . '/config/Database.php';
 require_once __DIR__ . '/Controller/QuestionController.php';
+require_once __DIR__ . '/Controller/AuthController.php';
 
 // Headers CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+// L'utilisation des Cookies de session avec JavaScript (credentials=include)
+// requiert qu'on précise l'origine exacte et pas juste une "*"
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : 'http://localhost';
+header("Access-Control-Allow-Origin: $origin");
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 
-// Gérer les requêtes OPTIONS
+// Gérer les requêtes OPTIONS (pour les navigateurs)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
+}
+
+// Fonction utilitaire pour protéger les routes de l'API
+function authorize() {
+    if (!isset($_SESSION['admin_id'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Non autorisé. Veuillez vous connecter.']);
+        exit();
+    }
 }
 
 // Initialiser la base de données
 $db = new Database();
 $pdo = $db->connect();
 
-// Créer le contrôleur
+// Créer les contrôleurs
 $controller = new QuestionController($pdo);
+$authController = new AuthController($pdo);
 
 // Parser la route
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -69,6 +87,7 @@ if (empty($remaining_path)) {
             echo json_encode(['error' => 'Route non trouvée']);
         }
     } elseif ($method === 'POST') {
+        authorize(); // Sécurité
         if (count($remaining_path) === 1) {
             // POST /api/questions (Backoffice - Ajouter Question)
             $controller->createQuestionWithAnswers();
@@ -77,6 +96,7 @@ if (empty($remaining_path)) {
              echo json_encode(['error' => 'Route non trouvée']);
         }
     } elseif ($method === 'DELETE') {
+        authorize(); // Sécurité
         if (count($remaining_path) === 2) {
             // DELETE /api/questions/{id}
             $id = $remaining_path[1];
@@ -87,17 +107,41 @@ if (empty($remaining_path)) {
         echo json_encode(['error' => 'Méthode non autorisée']);
     }
 } elseif ($remaining_path[0] === 'reponses') {
+    authorize(); // Sécurité
     if ($method === 'DELETE') {
         if (count($remaining_path) === 2) {
             // DELETE /api/reponses/{id}
             $id = $remaining_path[1];
             $controller->deleteAnswer($id);
         }
+    } elseif ($method === 'POST') {
+        if (count($remaining_path) === 1) {
+            // POST /api/reponses (Ajouter une seule réponse à une question existante)
+            $controller->addReponseToQuestion();
+        }
     }
 } elseif ($remaining_path[0] === 'questions-details') {
+    authorize(); // Sécurité
     if ($method === 'GET') {
         // GET /api/questions-details
         $controller->getAllQuestionsWithAnswers();
+    }
+} elseif ($remaining_path[0] === 'login') {
+    if ($method === 'POST') {
+        $authController->login();
+    }
+} elseif ($remaining_path[0] === 'logout') {
+    if ($method === 'POST') {
+        $authController->logout();
+    }
+} elseif ($remaining_path[0] === 'me') {
+    if ($method === 'GET') {
+        $authController->verifyAuth();
+    }
+} elseif ($remaining_path[0] === 'setup-admin') {
+    // ROUTE SECRETE DE PREMIERE CONFIGURATION
+    if ($method === 'GET') {
+        $authController->setupAdmin();
     }
 } else {
     http_response_code(404);

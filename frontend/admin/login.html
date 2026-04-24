@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Backoffice - Four des Casseaux</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <link rel="stylesheet" href="./admin.css">
+  <style>
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background-color: var(--surface);
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      z-index: 1;
+      /* Pour être au dessus du filigrane */
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-logo img {
+      width: 150px;
+    }
+
+    .login-title {
+      text-align: center;
+      font-family: var(--font-title);
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-container">
+      <div class="login-logo">
+        <img src="../assets/cropped-site-e1576939597289.webp" alt="Logo Four des Casseaux"
+          onerror="this.style.display='none'">
+      </div>
+      <h2 class="login-title">Accès Restreint</h2>
+
+      <form id="loginForm">
+        <div id="loginMessage" class="hidden"></div>
+
+        <div class="form-group">
+          <label for="username">Identifiant (admin)</label>
+          <input type="text" id="username" class="form-input" required placeholder="admin">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" class="form-input" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px;">Se
+          connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="./login.js"></script>
+</body>
+
+</html>

@@ -126,6 +126,50 @@ class QuestionController {
     }
 
     /**
+     * Ajouter une réponse à une question (admin)
+     * POST /api/reponses
+     */
+    public function addReponseToQuestion() {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        if (!$data || !isset($data['ordre']) || !isset($data['intitule']) || !isset($data['is_correct'])) {
+            return $this->respondJson(['error' => 'Données invalides'], 400);
+        }
+
+        $ordre = $data['ordre'];
+        $intitule = trim($data['intitule']);
+        $isCorrect = (bool)$data['is_correct'];
+
+        // Trouver la question correspondante pour avoir son type
+        $questions = $this->questionRepository->getAllQuestions();
+        $type = 'qcm'; // Default
+        foreach($questions as $q) {
+            if($q['ordre'] == $ordre) {
+                $type = $q['type'];
+                break;
+            }
+        }
+
+        try {
+            $this->reponseRepository->createReponse(
+                $ordre, 
+                $intitule, 
+                $type, 
+                $isCorrect
+            );
+
+            return $this->respondJson([
+                'success' => true,
+                'message' => 'Réponse ajoutée avec succès'
+            ], 201);
+            
+        } catch (Exception $e) {
+            return $this->respondJson(['error' => 'Erreur lors de l\'ajout : ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Supprimer une question (et ses réponses en cascade)
      * DELETE /api/questions/{id}
      */
@@ -153,10 +197,12 @@ class QuestionController {
      * Répondre avec JSON et headers CORS
      */
     private function respondJson($data, $statusCode = 200) {
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : 'http://localhost';
         header('Content-Type: application/json');
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
         
         http_response_code($statusCode);
         echo json_encode($data);

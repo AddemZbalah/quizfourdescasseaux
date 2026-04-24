@@ -15,18 +15,82 @@
     --font-title: "Cabin", sans-serif;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--background);
     color: var(--text-main);
     margin: 0;
-    padding: 20px;
+    padding: 0; /* padding désactivé ici car pris en charge par le wrapper et le header */
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-height: 100vh;
 }
 
-* {
-    box-sizing: border-box;
+/* Effet "Portail" - Moitié Gauche */
+body::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    /* On suppose une taille totale de l'image de 800x800px */
+    width: 400px; /* Affiche la moitié de l'image */
+    height: 800px;
+    /* background-image: url('../assets/logofourremake.png'); */
+    background-repeat: no-repeat;
+    background-position: left center; /* Recadre sur la gauche */
+    background-size: 800px 800px; /* Fixe la taille de l'image pour l'effet portal */
+    opacity: 0.25;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Effet "Portail" - Moitié Droite */
+body::after {
+    content: "";
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    /* On suppose une taille totale de l'image de 800x800px */
+    width: 400px; /* Affiche la moitié de l'image */
+    height: 800px;
+    /* background-image: url('../assets/logofourremake.png'); */
+    background-repeat: no-repeat;
+    background-position: right center; /* Recadre sur la droite */
+    background-size: 800px 800px; /* Fixe la taille de l'image pour l'effet portal */
+    opacity: 0.25;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* --- HEADER ADMIN --- */
+.admin-header {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centré car il n'y a plus les icônes de côté */
+    padding: 15px 40px; /* marges confortables de la charte */
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.header-title {
+    font-family: var(--font-title);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    flex: 1;
+    text-align: center;
+    color: white;
 }
 
 .admin-wrapper {
@@ -35,6 +99,7 @@ body {
     gap: 30px;
     width: 100%;
     max-width: 1200px;
+    padding: 0 20px 40px 20px; /* l'ancien padding du body a été migré ici */
 }
 
 @media (min-width: 900px) {
@@ -84,16 +149,31 @@ label {
     margin-bottom: 5px;
 }
 
-input[type="text"], select {
+input[type="text"],
+input[type="password"],
+select,
+.form-input {
     padding: 10px;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 1rem;
+    font-family: var(--font-sans);
+    color: var(--text-main);
+    background-color: #fff;
 }
 
-input[type="text"]:focus, select:focus {
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus,
+.form-input:focus {
     border-color: var(--primary-color);
     outline: none;
+}
+
+input::placeholder,
+.form-input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
 }
 
 .help-text {
@@ -145,6 +225,12 @@ input[type="text"]:focus, select:focus {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 10px;
+    gap: 20px; /* Espace garanti entre le titre et le bouton */
+}
+
+/* Empêche le bouton de se déformer si la question est super longue */
+.question-header .btn-secondary {
+    flex-shrink: 0;
 }
 
 .question-title {

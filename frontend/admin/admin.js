@@ -1,8 +1,34 @@
 // L'URL de ton API en production !
 // On pointe directement vers le backend sécurisé
-const API_BASE_URL = 'https://espaceporcelaine.com/Quiz/backend/api';
+const API_BASE_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+  ? 'http://localhost/quiz-four_des_casseaux/quizfourdescasseaux/backend/api'
+  : 'https://espaceporcelaine.com/Quiz/backend/api';
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  const fetchOptions = { credentials: 'include' };
+
+  // VERIFICATION DE LA SESSION
+  async function checkAuth() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/me`, fetchOptions);
+      if (!res.ok) {
+        window.location.href = 'login.html';
+      }
+    } catch (err) {
+      console.error('Erreur liaison Backend:', err);
+    }
+  }
+  checkAuth();
+
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch(`${API_BASE_URL}/logout`, { method: 'POST', credentials: 'include' });
+      window.location.href = 'login.html';
+    });
+  }
 
   // Éléments du DOM
   const questionForm = document.getElementById('questionForm');
@@ -100,8 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        }, credentials: 'include', body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -139,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // { cache: 'no-store' } + paramètre ?t=... force le navigateur et le serveur (Hostinger) à ne pas mettre en cache
       const timestamp = new Date().getTime();
-      const response = await fetch(`${API_BASE_URL}/questions-details?t=${timestamp}`, { cache: 'no-store' });
+      const response = await fetch(`${API_BASE_URL}/questions-details?t=${timestamp}`, { cache: 'no-store', credentials: 'include' });
       const data = await response.json();
 
       if (response.ok && data.questions) {
@@ -197,6 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">Supprimer</button>
         </div>
         ${answersHtml}
+        <div class="add-quick-answer-container" style="margin-top: 1rem;">
+             <button class="btn-secondary" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;" onclick="showAddAnswerForm(${q.ordre}, '${q.type}')">+ Ajouter une réponse</button>
+             <div id="add-form-container-${q.ordre}" class="add-answer-form" style="display:none; margin-top: 0.5rem; gap: 0.5rem; flex-wrap: wrap; background: #f9f9f9; padding: 0.5rem; border-radius: 4px;">
+                 <input type="text" id="new-answer-text-${q.ordre}" placeholder="Intitulé de la réponse" class="form-input" style="flex:1; min-width:150px;">
+                 <label style="display:flex; align-items:center; gap:0.2rem;"><input type="checkbox" id="new-answer-correct-${q.ordre}"> Correct</label>
+                 <button class="btn-primary" style="padding: 0.3rem 0.6rem;" onclick="addQuickAnswer(${q.ordre})">Enregistrer</button>
+             </div>
+        </div>
       `;
 
       questionsListContainer.appendChild(qDiv);
@@ -208,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Es-tu sûr de vouloir supprimer cette question (les réponses associées seront également supprimées) ?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/questions/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE_URL}/questions/${id}`, { method: 'DELETE', credentials: 'include' });
       if (response.ok) {
         showMessage('Question supprimée avec succès.', 'success');
         loadAdminQuestions(); // Recharger la liste
@@ -225,13 +258,53 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Es-tu sûr de vouloir supprimer cette réponse ?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/reponses/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE_URL}/reponses/${id}`, { method: 'DELETE', credentials: 'include' });
       if (response.ok) {
         showMessage('Réponse supprimée avec succès.', 'success');
         loadAdminQuestions(); // Recharger la liste
       } else {
         const data = await response.json();
         showMessage(data.error || 'Erreur lors de la suppression.', 'error');
+      }
+    } catch (error) {
+      showMessage('Impossible de joindre le serveur.', 'error');
+    }
+  }
+
+  // Permet d'afficher/masquer le petit formulaire d'ajout rapide sous une question
+  window.showAddAnswerForm = function (ordre, type) {
+    const formContainer = document.getElementById(`add-form-container-${ordre}`);
+    formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
+  }
+
+  // Envoie la requête pour ajouter la nouvelle réponse
+  window.addQuickAnswer = async function (ordre) {
+    const inputIntitule = document.getElementById(`new-answer-text-${ordre}`).value;
+    const inputCorrect = document.getElementById(`new-answer-correct-${ordre}`).checked;
+
+    if (!inputIntitule.trim()) {
+      alert('Veuillez entrer un intitulé.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reponses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          ordre: ordre,
+          intitule: inputIntitule,
+          is_correct: inputCorrect
+        })
+      });
+
+      if (response.ok) {
+        showMessage('Nouvelle réponse ajoutée avec succès.', 'success');
+        loadAdminQuestions(); // Recharger tout pour voir le changement direct
+      } else {
+        const data = await response.json();
+        showMessage(data.error || 'Erreur.', 'error');
       }
     } catch (error) {
       showMessage('Impossible de joindre le serveur.', 'error');
