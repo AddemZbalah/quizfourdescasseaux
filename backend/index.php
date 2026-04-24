@@ -68,6 +68,14 @@ if (empty($remaining_path)) {
             http_response_code(404);
             echo json_encode(['error' => 'Route non trouvée']);
         }
+    } elseif ($method === 'POST') {
+        if (count($remaining_path) === 1) {
+            // POST /api/questions (Backoffice - Ajouter Question)
+            $controller->createQuestionWithAnswers();
+        } else {
+             http_response_code(404);
+             echo json_encode(['error' => 'Route non trouvée']);
+        }
     } else {
         http_response_code(405);
         echo json_encode(['error' => 'Méthode non autorisée']);

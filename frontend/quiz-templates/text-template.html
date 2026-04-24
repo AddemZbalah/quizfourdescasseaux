@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Four des Casseaux - QCM</title>
+  <title>Four des Casseaux - Texte</title>
   <link href="../style.css" rel="stylesheet">
 </head>
 
@@ -23,7 +23,7 @@
     </button>
   </header>
 
-  <main class="w-full flex-1 flex flex-col items-center">
+  <main class="main-content">
     <section class="question-info">
       <h1 class="question-info__title">QUESTION</h1>
       <p class="question-info__progress" id="progress-indicator"></p>
@@ -31,19 +31,17 @@
 
     <section class="card">
       <div class="card__question-text">
-        <ol id="question-list" class="list-decimal ml-4">
+        <ol id="question-list" class="card__list">
           <li id="question-title"></li>
         </ol>
       </div>
 
-      <div id="qcm-options-container" class="qcm-options">
-        <!-- Les options seront générées ici par le Javascript -->
+      <div class="text-answer">
+        <textarea id="text-answer-input" class="text-answer__textarea"></textarea>
       </div>
     </section>
 
-    <form action="./text-template.html" class="w-full flex justify-center">
-      <button type="submit" class="btn-submit">Valider</button>
-    </form>
+    <button class="btn-submit">Valider</button>
   </main>
 
   <script src="../main.js" type="module"></script>

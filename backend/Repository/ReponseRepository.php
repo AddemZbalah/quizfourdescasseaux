@@ -76,5 +76,19 @@ class ReponseRepository {
 
         return $reponses;
     }
+
+    /**
+     * Créer une nouvelle réponse
+     */
+    public function createReponse($questionId, $intitule, $type, $isCorrect) {
+        $sql = "INSERT INTO reponses (question_id, intitule, type, is_correct) VALUES (:question_id, :intitule, :type, :is_correct)";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            ':question_id' => $questionId,
+            ':intitule' => $intitule,
+            ':type' => $type,
+            ':is_correct' => (int) $isCorrect // Convert boolean to integer for SQL
+        ]);
+    }
 }
 ?>

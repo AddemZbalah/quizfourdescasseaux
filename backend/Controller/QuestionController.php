@@ -6,8 +6,10 @@ require_once __DIR__ . '/../Repository/ReponseRepository.php';
 class QuestionController {
     private $questionRepository;
     private $reponseRepository;
+    private $pdo;
 
     public function __construct($pdo) {
+        $this->pdo = $pdo;
         $this->questionRepository = new QuestionRepository($pdo);
         $this->reponseRepository = new ReponseRepository($pdo);
     }
@@ -47,6 +49,59 @@ class QuestionController {
         }
 
         return $this->respondJson(['reponses' => $reponses]);
+    }
+
+    /**
+     * Créer une question avec ses réponses (admin)
+     * POST /api/questions
+     */
+    public function createQuestionWithAnswers() {
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        if (!$data || !isset($data['intitule']) || !isset($data['type'])) {
+            return $this->respondJson(['error' => 'Données invalides'], 400);
+        }
+
+        $intitule = trim($data['intitule']);
+        $indice = isset($data['indice']) ? trim($data['indice']) : null;
+        $type = $data['type']; // 'qcm', 'texte', 'images'
+        $reponses = isset($data['reponses']) && is_array($data['reponses']) ? $data['reponses'] : [];
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // Créer la question
+            $questionId = $this->questionRepository->createQuestion($intitule, $indice, $type);
+
+            // Créer les réponses (si présentes)
+            foreach ($reponses as $rep) {
+                // S'assurer qu'il y a l'intitulé et le boolean
+                if (isset($rep['intitule']) && isset($rep['is_correct'])) {
+                    // Le type de la réponse est généralement le même que la question
+                    $repType = isset($rep['type']) ? $rep['type'] : $type;
+                    
+                    $this->reponseRepository->createReponse(
+                        $questionId, 
+                        trim($rep['intitule']), 
+                        $repType, 
+                        (bool)$rep['is_correct']
+                    );
+                }
+            }
+
+            $this->pdo->commit();
+
+            return $this->respondJson([
+                'success' => true,
+                'message' => 'Question créée avec succès',
+                'question_id' => $questionId
+            ], 201);
+            
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return $this->respondJson(['error' => 'Erreur lors de la création : ' . $e->getMessage()], 500);
+        }
     }
 
     /**

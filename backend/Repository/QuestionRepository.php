@@ -95,5 +95,20 @@ class QuestionRepository {
             $row['type']
         );
     }
+
+    /**
+     * Créer une nouvelle question et retourner son ID généré
+     */
+    public function createQuestion($intitule, $indice, $type) {
+        $sql = "INSERT INTO questions (intitule, indice, type) VALUES (:intitule, :indice, :type)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':intitule' => $intitule,
+            ':indice' => $indice,
+            ':type' => $type
+        ]);
+
+        return $this->pdo->lastInsertId();
+    }
 }
 ?>

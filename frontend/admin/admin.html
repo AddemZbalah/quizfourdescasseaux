@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backoffice - Four des Casseaux</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+
+<body>
+  <div class="admin-container">
+    <h1>Ajouter une nouvelle question</h1>
+
+    <form id="questionForm">
+      <div class="form-group">
+        <label for="intitule">Intitulé de la question *</label>
+        <input type="text" id="intitule" name="intitule" required
+          placeholder="Ex: Quelle est la capitale de la France ?">
+      </div>
+
+      <div class="form-group">
+        <label for="indice">Indice (optionnel)</label>
+        <input type="text" id="indice" name="indice" placeholder="Ex: Ça commence par un P...">
+      </div>
+
+      <div class="form-group">
+        <label for="type">Type de question *</label>
+        <select id="type" name="type" required>
+          <option value="qcm">QCM (Choix multiples)</option>
+          <option value="texte">Texte livre (Mots clés acceptés)</option>
+          <option value="images">Images</option>
+        </select>
+      </div>
+
+      <hr>
+
+      <div class="answers-section">
+        <h2>Réponses possibles</h2>
+        <p class="help-text">Ajoutez les choix possibles. Cochez la case pour indiquer la(les) bonne(s) réponse(s).</p>
+
+        <div id="answersContainer">
+          <!-- Les réponses seront ajoutées ici dynamiquement -->
+        </div>
+
+        <button type="button" id="addAnswerBtn" class="btn-secondary">+ Ajouter une réponse</button>
+      </div>
+
+      <hr>
+
+      <div class="form-actions">
+        <button type="submit" id="submitBtn" class="btn-primary">Enregistrer la question</button>
+      </div>
+
+      <div id="messageBox" class="message hidden"></div>
+    </form>
+  </div>
+
+  <!-- Javascript du backoffice -->
+  <script src="./admin.js"></script>
+</body>
+
+</html>
