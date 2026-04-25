@@ -13,9 +13,103 @@
 <body>
   <!-- Header inspiré de la charte graphique -->
   <header class="admin-header">
-    <div class="header-title">BACKOFFICE FOUR DES CASSEAUX</div> <a href="#" id="logoutBtn"
-      style="color: white; font-size: 0.9rem; text-decoration: underline; margin-left: auto;">Déconnexion</a>
+    <div class="header-logo-wrap">
+      <img src="../assets/logo.png" alt="Logo Four des Casseaux" class="header-logo">
+    </div>
+    <div class="header-title">BACKOFFICE FOUR DES CASSEAUX</div>
+    <div class="header-actions">
+      <button type="button" id="helpBtn" class="header-link-btn">Besoin d'aide ?</button>
+      <a href="#" id="logoutBtn" class="header-link-btn logout-link">Déconnexion</a>
+    </div>
   </header>
+
+  <div id="helpOverlay" class="help-overlay" aria-hidden="true"></div>
+  <aside id="helpSidebar" class="help-sidebar" aria-hidden="true">
+    <div class="help-sidebar-header">
+      <h2>Guide Complet du Backoffice</h2>
+      <button type="button" id="closeHelpBtn" class="help-close-btn" aria-label="Fermer le guide">✕</button>
+    </div>
+
+    <div class="help-sidebar-content">
+      <p>
+        Ce panneau explique l'ensemble des fonctionnalités disponibles pour créer, modifier et organiser le quiz.
+      </p>
+
+      <h3>Vue d'ensemble</h3>
+      <p>
+        Le backoffice est organisé en 2 zones:
+      </p>
+      <ul>
+        <li>Zone gauche: création rapide d'une nouvelle question.</li>
+        <li>Zone droite: liste des questions existantes et actions d'édition.</li>
+      </ul>
+
+      <h3>Schéma d'utilisation recommandé</h3>
+      <ol>
+        <li>Renseigner l'intitulé de la question.</li>
+        <li>Ajouter un indice optionnel (pour aider les joueurs).</li>
+        <li>Choisir le type de question (QCM, Texte libre, Images).</li>
+        <li>Ajouter les réponses et cocher les bonnes réponses.</li>
+        <li>Enregistrer la question.</li>
+        <li>Vérifier dans la liste, puis ajuster l'ordre si nécessaire.</li>
+      </ol>
+
+      <h3>Créer une question</h3>
+      <ul>
+        <li><strong>Intitulé de la question</strong>: texte affiché aux joueurs.</li>
+        <li><strong>Indice (optionnel)</strong>: aide affichée pendant le quiz.</li>
+        <li><strong>Type de question</strong>:
+          QCM = choix multiples,
+          Texte libre = saisie joueur avec mots clés,
+          Images = question orientée visuel.</li>
+      </ul>
+
+      <h3>Gérer les réponses</h3>
+      <ul>
+        <li><strong>+ Ajouter une réponse</strong>: ajoute une ligne de réponse.</li>
+        <li><strong>Case Correct ?</strong>: indique si la réponse est valide.</li>
+        <li><strong>✕ rouge</strong>: supprime la ligne de réponse en cours.</li>
+      </ul>
+
+      <h3>Enregistrement et retours</h3>
+      <ul>
+        <li>Le bouton <strong>Enregistrer la question</strong> envoie les données au backend.</li>
+        <li>Des messages de succès/erreur s'affichent sous le formulaire.</li>
+        <li>Après succès: le formulaire est réinitialisé et la liste est rechargée.</li>
+      </ul>
+
+      <h3>Liste des questions</h3>
+      <ul>
+        <li><strong>Type | ID</strong>: métadonnées techniques de la question.</li>
+        <li><strong>Indice</strong>: affiché directement avec 2 actions dédiées.</li>
+        <li><strong>Modifier l'indice</strong>: met à jour l'indice sans toucher au reste.</li>
+        <li><strong>Supprimer l'indice</strong>: retire l'indice pour cette question.</li>
+      </ul>
+
+      <h3>Organisation et maintenance</h3>
+      <ul>
+        <li><strong>↑ / ↓</strong>: change l'ordre d'apparition des questions.</li>
+        <li><strong>Supprimer (question)</strong>: retire la question et ses réponses associées.</li>
+        <li><strong>Supprimer (réponse)</strong>: retire seulement une réponse dans la liste.</li>
+        <li><strong>+ Ajouter une réponse</strong> (dans la liste): ajout rapide sans revenir au formulaire.</li>
+      </ul>
+
+      <h3>Bonnes pratiques</h3>
+      <ul>
+        <li>Écrire des intitulés courts et clairs.</li>
+        <li>Éviter les indices trop explicites.</li>
+        <li>Vérifier systématiquement les cases <strong>Correct ?</strong> avant enregistrement.</li>
+        <li>Utiliser le réordonnancement pour construire une progression pédagogique.</li>
+      </ul>
+
+      <h3>Dépannage rapide</h3>
+      <ul>
+        <li>Si vous êtes redirigé vers la connexion: la session admin a expiré.</li>
+        <li>Si une action échoue: vérifier la connectivité serveur puis réessayer.</li>
+        <li>Si une question n'apparaît pas: recharger la page pour forcer la synchronisation.</li>
+      </ul>
+    </div>
+  </aside>
 
   <div class="admin-wrapper">
     <div class="admin-container">
@@ -37,7 +131,7 @@
           <label for="type">Type de question *</label>
           <select id="type" name="type" required>
             <option value="qcm">QCM (Choix multiples)</option>
-            <option value="texte">Texte livre (Mots clés acceptés)</option>
+            <option value="texte">Texte libre (Mots clés acceptés)</option>
             <option value="images">Images</option>
           </select>
         </div>
@@ -64,10 +158,57 @@
 
         <div id="messageBox" class="message hidden"></div>
       </form>
+
+      <template id="answerRowTemplate">
+        <div class="answer-row">
+          <input type="text" class="answer-input" placeholder="Intitulé de la réponse" required>
+          <label>
+            <input type="checkbox" class="answer-correct">
+            Correct ?
+          </label>
+          <button type="button" class="btn-remove answer-remove-btn" title="Supprimer">✕</button>
+        </div>
+      </template>
     </div>
 
     <div class="admin-container list-container">
       <h2>Liste des Questions</h2>
+      <template id="questionItemTemplate">
+        <div class="question-item">
+          <div class="question-header">
+            <div>
+              <h3 class="question-title"></h3>
+              <span class="help-text question-meta"></span>
+              <div class="question-hint-line">
+                <span class="help-text question-hint"></span>
+                <button class="btn-secondary btn-hint btn-edit-hint" type="button">Modifier l'indice</button>
+                <button class="btn-secondary btn-hint btn-delete-hint" type="button">Supprimer l'indice</button>
+              </div>
+            </div>
+            <div class="question-actions">
+              <button class="btn-secondary btn-order btn-move-up" type="button" title="Monter la question">↑</button>
+              <button class="btn-secondary btn-order btn-move-down" type="button"
+                title="Descendre la question">↓</button>
+              <button class="btn-secondary btn-delete-question" type="button"
+                style="color:var(--danger); border-color:var(--danger);">Supprimer</button>
+            </div>
+          </div>
+          <div class="question-answers-slot"></div>
+          <div class="add-quick-answer-container" style="margin-top: 1rem;">
+            <button class="btn-secondary btn-toggle-answer" type="button"
+              style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">+ Ajouter une réponse</button>
+            <div class="add-answer-form"
+              style="display:none; margin-top: 0.5rem; gap: 0.5rem; flex-wrap: wrap; background: #f9f9f9; padding: 0.5rem; border-radius: 4px;">
+              <input type="text" class="form-input input-quick-answer" placeholder="Intitulé de la réponse"
+                style="flex:1; min-width:150px;">
+              <label style="display:flex; align-items:center; gap:0.2rem;"><input type="checkbox"
+                  class="input-quick-correct"> Correct</label>
+              <button class="btn-primary btn-save-answer" type="button"
+                style="padding: 0.3rem 0.6rem;">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </template>
       <div id="questionsList">
         <p>Chargement des questions en cours...</p>
       </div>

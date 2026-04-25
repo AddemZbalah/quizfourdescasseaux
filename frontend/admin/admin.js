@@ -30,6 +30,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const helpBtn = document.getElementById('helpBtn');
+  const closeHelpBtn = document.getElementById('closeHelpBtn');
+  const helpSidebar = document.getElementById('helpSidebar');
+  const helpOverlay = document.getElementById('helpOverlay');
+
+  function openHelpSidebar() {
+    if (!helpSidebar || !helpOverlay) return;
+    helpSidebar.classList.add('is-open');
+    helpOverlay.classList.add('is-open');
+    helpSidebar.setAttribute('aria-hidden', 'false');
+    helpOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeHelpSidebar() {
+    if (!helpSidebar || !helpOverlay) return;
+    helpSidebar.classList.remove('is-open');
+    helpOverlay.classList.remove('is-open');
+    helpSidebar.setAttribute('aria-hidden', 'true');
+    helpOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  if (helpBtn) {
+    helpBtn.addEventListener('click', openHelpSidebar);
+  }
+
+  if (closeHelpBtn) {
+    closeHelpBtn.addEventListener('click', closeHelpSidebar);
+  }
+
+  if (helpOverlay) {
+    helpOverlay.addEventListener('click', closeHelpSidebar);
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && helpSidebar && helpSidebar.classList.contains('is-open')) {
+      closeHelpSidebar();
+    }
+  });
+
   // Éléments du DOM
   const questionForm = document.getElementById('questionForm');
   const answersContainer = document.getElementById('answersContainer');
@@ -38,33 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Gérer l'ajout d'une nouvelle ligne de réponse
   let answerIndex = 0; // Compteur unique pour chaque réponse afin d'éviter les collisions dans le DOM
+  const answerRowTemplate = document.getElementById('answerRowTemplate');
 
   function addAnswerRow() {
-    const row = document.createElement('div');
-    row.className = 'answer-row';
+    if (!(answerRowTemplate instanceof HTMLTemplateElement)) {
+      console.error('Template answerRowTemplate non trouvé');
+      return;
+    }
+
+    const fragment = /** @type {DocumentFragment} */ (answerRowTemplate.content.cloneNode(true));
+    const row = fragment.querySelector('.answer-row');
+
+    if (!row) {
+      console.error('Impossible de cloner le template de réponse');
+      return;
+    }
+
     row.id = `answer-${answerIndex}`;
 
-    row.innerHTML = `
-            <input type="text" class="answer-input" placeholder="Intitulé de la réponse" required>
-            
-            <label>
-                <input type="checkbox" class="answer-correct">
-                Correct ?
-            </label>
-            
-            <button type="button" class="btn-remove" onclick="removeAnswerRow(${answerIndex})" title="Supprimer">✕</button>
-        `;
+    const removeBtn = row.querySelector('.answer-remove-btn');
+    const currentAnswerIndex = answerIndex;
+
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        row.remove();
+      });
+    }
 
     answersContainer.appendChild(row);
     answerIndex++;
-  }
-
-  // Supprimer une réponse (rendu global pour le onclick)
-  window.removeAnswerRow = function (id) {
-    const row = document.getElementById(`answer-${id}`);
-    if (row) {
-      row.remove();
-    }
   }
 
   // Ajouter une première réponse vide par défaut au chargement
@@ -159,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ========== GESTION DE L'AFFICHAGE DES QUESTIONS ==========
 
   const questionsListContainer = document.getElementById('questionsList');
+  const questionItemTemplate = document.getElementById('questionItemTemplate');
 
   async function loadAdminQuestions() {
     try {
@@ -186,65 +230,157 @@ document.addEventListener('DOMContentLoaded', () => {
 
     questionsListContainer.innerHTML = '';
 
-    questions.forEach((q, index) => {
-      const qDiv = document.createElement('div');
-      qDiv.className = 'question-item';
-      const canMoveUp = q.ordre > 1;
-      const canMoveDown = q.ordre < questions.length;
-
-      let filteredReponses = q.reponses || [];
-      // Si la question est de type 'texte', on n'affiche que les réponses dont is_correct = true
-      if (q.type === 'texte') {
-        filteredReponses = filteredReponses.filter(r => r.is_correct);
-      }
-
-      let answersHtml = '<ul class="answer-list">';
-      if (filteredReponses.length > 0) {
-        filteredReponses.forEach(rep => {
-          const badge = rep.is_correct ? '<span class="correct-badge">Vrai</span>' : '';
-          answersHtml += `
-            <li>
-              <span>${rep.intitule} ${badge}</span>
-              <button class="btn-remove" onclick="deleteAnswer(${rep.id})" title="Supprimer la réponse">✕</button>
-            </li>
-          `;
-        });
-      } else {
-        answersHtml += '<li><i>Aucune réponse configurée</i></li>';
-      }
-      answersHtml += '</ul>';
-
-      qDiv.innerHTML = `
-        <div class="question-header">
-          <div>
-            <!-- L'affichage utilise maintenant l'ordre officiel issu de la base de données -->
-            <h3 class="question-title">Question ${q.ordre} - ${q.intitule}</h3>
-            <span class="help-text">Type : ${q.type} | ID : ${q.id}</span>
-            <div class="question-hint-line">
-              <span class="help-text">Indice : ${q.indice && q.indice.trim() !== '' ? q.indice : '<i>Aucun</i>'}</span>
-              <button class="btn-secondary btn-hint" onclick="editQuestionIndice(${q.id})">Modifier l'indice</button>
-              <button class="btn-secondary btn-hint" onclick="deleteQuestionIndice(${q.id})">Supprimer l'indice</button>
-            </div>
-          </div>
-          <div class="question-actions">
-            <button class="btn-secondary btn-order" ${canMoveUp ? '' : 'disabled'} onclick="moveQuestion(${q.id}, ${q.ordre - 1})" title="Monter la question">↑</button>
-            <button class="btn-secondary btn-order" ${canMoveDown ? '' : 'disabled'} onclick="moveQuestion(${q.id}, ${q.ordre + 1})" title="Descendre la question">↓</button>
-            <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="deleteQuestion(${q.id})">Supprimer</button>
-          </div>
-        </div>
-        ${answersHtml}
-        <div class="add-quick-answer-container" style="margin-top: 1rem;">
-             <button class="btn-secondary" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;" onclick="showAddAnswerForm(${q.ordre}, '${q.type}')">+ Ajouter une réponse</button>
-             <div id="add-form-container-${q.ordre}" class="add-answer-form" style="display:none; margin-top: 0.5rem; gap: 0.5rem; flex-wrap: wrap; background: #f9f9f9; padding: 0.5rem; border-radius: 4px;">
-                 <input type="text" id="new-answer-text-${q.ordre}" placeholder="Intitulé de la réponse" class="form-input" style="flex:1; min-width:150px;">
-                 <label style="display:flex; align-items:center; gap:0.2rem;"><input type="checkbox" id="new-answer-correct-${q.ordre}"> Correct</label>
-                 <button class="btn-primary" style="padding: 0.3rem 0.6rem;" onclick="addQuickAnswer(${q.ordre})">Enregistrer</button>
-             </div>
-        </div>
-      `;
-
-      questionsListContainer.appendChild(qDiv);
+    questions.forEach((q) => {
+      const qElement = createQuestionElement(q, questions.length);
+      questionsListContainer.appendChild(qElement);
     });
+  }
+
+  function buildAnswersHtml(question) {
+    let filteredReponses = question.reponses || [];
+
+    // Si la question est de type 'texte', on n'affiche que les réponses dont is_correct = true
+    if (question.type === 'texte') {
+      filteredReponses = filteredReponses.filter(r => r.is_correct);
+    }
+
+    let answersHtml = '<ul class="answer-list">';
+
+    if (filteredReponses.length > 0) {
+      filteredReponses.forEach(rep => {
+        const badge = rep.is_correct ? '<span class="correct-badge">Vrai</span>' : '';
+        answersHtml += `
+          <li>
+            <span>${rep.intitule} ${badge}</span>
+            <button class="btn-remove" onclick="deleteAnswer(${rep.id})" title="Supprimer la réponse">✕</button>
+          </li>
+        `;
+      });
+    } else {
+      answersHtml += '<li><i>Aucune réponse configurée</i></li>';
+    }
+
+    answersHtml += '</ul>';
+    return answersHtml;
+  }
+
+  function createQuestionElement(q, totalQuestions) {
+    if (!(questionItemTemplate instanceof HTMLTemplateElement)) {
+      const fallback = document.createElement('div');
+      fallback.className = 'question-item';
+      fallback.innerHTML = '<p>Template de question introuvable.</p>';
+      return fallback;
+    }
+
+    const fragment = /** @type {DocumentFragment} */ (questionItemTemplate.content.cloneNode(true));
+    const root = fragment.querySelector('.question-item');
+
+    if (!root) {
+      const fallback = document.createElement('div');
+      fallback.className = 'question-item';
+      fallback.innerHTML = '<p>Erreur de rendu du template.</p>';
+      return fallback;
+    }
+
+    const canMoveUp = q.ordre > 1;
+    const canMoveDown = q.ordre < totalQuestions;
+
+    const titleEl = root.querySelector('.question-title');
+    const metaEl = root.querySelector('.question-meta');
+    const hintEl = root.querySelector('.question-hint');
+    const answersSlot = root.querySelector('.question-answers-slot');
+
+    if (titleEl) {
+      titleEl.textContent = `Question ${q.ordre} - ${q.intitule}`;
+    }
+
+    if (metaEl) {
+      metaEl.textContent = `Type : ${q.type} | ID : ${q.id}`;
+    }
+
+    if (hintEl) {
+      hintEl.textContent = `Indice : ${q.indice && q.indice.trim() !== '' ? q.indice : 'Aucun'}`;
+    }
+
+    if (answersSlot) {
+      answersSlot.innerHTML = buildAnswersHtml(q);
+    }
+
+    const editHintBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-edit-hint'));
+    const deleteHintBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-delete-hint'));
+    const moveUpBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-move-up'));
+    const moveDownBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-move-down'));
+    const deleteQuestionBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-delete-question'));
+    const toggleAnswerBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-toggle-answer'));
+    const formContainer = /** @type {HTMLDivElement | null} */ (root.querySelector('.add-answer-form'));
+    const quickAnswerInput = /** @type {HTMLInputElement | null} */ (root.querySelector('.input-quick-answer'));
+    const quickAnswerCorrect = /** @type {HTMLInputElement | null} */ (root.querySelector('.input-quick-correct'));
+    const saveQuickAnswerBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.btn-save-answer'));
+
+    if (editHintBtn) {
+      editHintBtn.setAttribute('onclick', `editQuestionIndice(${q.id})`);
+    }
+
+    if (deleteHintBtn) {
+      deleteHintBtn.setAttribute('onclick', `deleteQuestionIndice(${q.id})`);
+    }
+
+    if (moveUpBtn) {
+      moveUpBtn.disabled = !canMoveUp;
+      moveUpBtn.setAttribute('onclick', `moveQuestion(${q.id}, ${q.ordre - 1})`);
+    }
+
+    if (moveDownBtn) {
+      moveDownBtn.disabled = !canMoveDown;
+      moveDownBtn.setAttribute('onclick', `moveQuestion(${q.id}, ${q.ordre + 1})`);
+    }
+
+    if (deleteQuestionBtn) {
+      deleteQuestionBtn.setAttribute('onclick', `deleteQuestion(${q.id})`);
+    }
+
+    if (toggleAnswerBtn && formContainer) {
+      toggleAnswerBtn.addEventListener('click', () => {
+        formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
+      });
+    }
+
+    if (saveQuickAnswerBtn && quickAnswerInput && quickAnswerCorrect) {
+      saveQuickAnswerBtn.addEventListener('click', async () => {
+        const inputIntitule = quickAnswerInput.value;
+        const inputCorrect = quickAnswerCorrect.checked;
+
+        if (!inputIntitule.trim()) {
+          alert('Veuillez entrer un intitulé.');
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/reponses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              ordre: q.ordre,
+              intitule: inputIntitule,
+              is_correct: inputCorrect
+            })
+          });
+
+          if (response.ok) {
+            showMessage('Nouvelle réponse ajoutée avec succès.', 'success');
+            loadAdminQuestions();
+          } else {
+            const data = await response.json();
+            showMessage(data.error || 'Erreur.', 'error');
+          }
+        } catch (error) {
+          showMessage('Impossible de joindre le serveur.', 'error');
+        }
+      });
+    }
+
+    return root;
   }
 
   window.moveQuestion = async function (id, newOrdre) {

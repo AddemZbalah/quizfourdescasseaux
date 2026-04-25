@@ -72,12 +72,13 @@ body::after {
 
 /* --- HEADER ADMIN --- */
 .admin-header {
+    position: relative;
     width: 100%;
     background-color: var(--primary-color);
     color: white;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centré car il n'y a plus les icônes de côté */
+    justify-content: center;
     padding: 15px 40px; /* marges confortables de la charte */
     margin-bottom: 30px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -93,19 +94,166 @@ body::after {
     color: white;
 }
 
+.header-logo-wrap {
+    position: absolute;
+    left: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.header-actions {
+    position: absolute;
+    right: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-link-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.header-link-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.header-link-btn.logout-link {
+    text-decoration: underline;
+}
+
+.help-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 12, 26, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 40;
+}
+
+.help-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.help-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(480px, 94vw);
+    height: 100vh;
+    background: #fff;
+    border-left: 2px solid var(--border);
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
+    transform: translateX(105%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+}
+
+.help-sidebar.is-open {
+    transform: translateX(0);
+}
+
+.help-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #ece3dc;
+    background: #fbf7f4;
+}
+
+.help-sidebar-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-family: var(--font-title);
+    font-size: 1.1rem;
+}
+
+.help-close-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--primary-color);
+    font-size: 1.05rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    padding: 0;
+    line-height: 1;
+}
+
+.help-close-btn:hover {
+    background: #f6ede7;
+}
+
+.help-sidebar-content {
+    padding: 16px 18px 26px 18px;
+    overflow-y: auto;
+    font-size: 0.93rem;
+    line-height: 1.45;
+    color: #43304f;
+}
+
+.help-sidebar-content h3 {
+    margin: 18px 0 8px 0;
+    color: var(--primary-color);
+    font-size: 0.98rem;
+}
+
+.help-sidebar-content p {
+    margin: 0 0 8px 0;
+}
+
+.help-sidebar-content ul,
+.help-sidebar-content ol {
+    margin: 0 0 10px 18px;
+    padding: 0;
+}
+
+.help-sidebar-content li {
+    margin-bottom: 5px;
+}
+
 .admin-wrapper {
     display: flex;
     flex-direction: column;
     gap: 30px;
     width: 100%;
-    max-width: 1200px;
-    padding: 0 20px 40px 20px; /* l'ancien padding du body a été migré ici */
+    max-width: 1480px;
+    padding: 0 14px 40px 14px; /* section élargie */
 }
 
 @media (min-width: 900px) {
     .admin-wrapper {
         flex-direction: row;
         align-items: flex-start;
+    }
+
+    .admin-wrapper > .admin-container:first-child {
+        flex: 1.4;
+    }
+
+    .admin-wrapper > .list-container {
+        flex: 0.6;
     }
 }
 
@@ -116,6 +264,65 @@ body::after {
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 12px 14px;
+    }
+
+    .header-logo-wrap {
+        left: 12px;
+    }
+
+    .header-logo {
+        width: 34px;
+        height: 34px;
+    }
+
+    .header-title {
+        font-size: 1.05rem;
+        letter-spacing: 1px;
+        padding-left: 34px;
+    }
+
+    .header-actions {
+        position: static;
+        margin-left: 10px;
+        gap: 8px;
+    }
+
+    .header-link-btn {
+        font-size: 0.78rem;
+        padding: 6px 9px;
+    }
+
+    .admin-wrapper {
+        padding: 0 2px 24px 2px;
+    }
+
+    .admin-container {
+        padding: 16px;
+        border-radius: 6px;
+    }
+
+    .help-sidebar {
+        width: 96vw;
+    }
+
+    .answer-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        row-gap: 10px;
+    }
+
+    .answer-row .btn-remove {
+        grid-column: 2;
+        justify-self: end;
+    }
+
+    .answer-row label {
+        justify-self: start;
+    }
 }
 
 h1 {
@@ -130,6 +337,15 @@ h1 {
 h2 {
     font-size: 1.25rem;
     margin-bottom: 10px;
+}
+
+.list-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--primary-color);
+    font-family: var(--font-title);
+    text-transform: uppercase;
 }
 
 hr {
@@ -184,27 +400,36 @@ input::placeholder,
 
 /* Style des réponses dynamiques */
 .answer-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 10px;
-    padding: 10px;
+    padding: 12px;
     border: 1px dashed var(--border);
     border-radius: 4px;
     background-color: #fcfcfc;
 }
 
 .answer-row input[type="text"] {
-    flex-grow: 1;
+    width: 100%;
+    min-width: 0;
 }
 
 .answer-row label {
     font-weight: normal;
     font-size: 0.9rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     margin: 0;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.answer-row .btn-remove {
+    line-height: 1;
+    margin-left: 2px;
 }
 
 /* Liste des questions existantes */
@@ -224,8 +449,14 @@ input::placeholder,
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
     gap: 20px; /* Espace garanti entre le titre et le bouton */
+}
+
+.question-header > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* Empêche le bouton de se déformer si la question est super longue */
@@ -257,18 +488,25 @@ input::placeholder,
     margin: 0;
 }
 
+.question-header > div:first-child > .help-text {
+    margin: 0;
+}
+
 .question-hint-line {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 8px;
+    gap: 12px;
     flex-wrap: nowrap;
     overflow-x: auto;
+    padding-top: 2px;
 }
 
 .question-hint-line .help-text {
     flex-shrink: 0;
     white-space: nowrap;
+    color: var(--primary-color);
+    font-weight: 500;
+    margin: 0;
 }
 
 .btn-hint {
