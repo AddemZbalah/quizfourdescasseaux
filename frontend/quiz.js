@@ -1,11 +1,95 @@
+// @ts-nocheck
 /**
  * Gestionnaire du Quiz - Relie le Frontend et le Backend
  */
 
 const API_BASE_URL = 'https://espaceporcelaine.com/Quiz/backend/api';
+const CHECK_ICON_SRC = '../assets/Check.png';
+const ERROR_ICON_SRC = '../assets/Icon.png';
 let currentQuestionIndex = 0;
-let allQuestions = [];
+export let allQuestions = [];
 let totalQuestions = 0;
+let currentQuestionData = null;
+let selectedAnswerId = null;
+let submitMode = 'validate';
+
+function setSubmitButtonLabel(label, reverse = false) {
+  const submitButton = document.querySelector('.btn-submit');
+  if (submitButton) {
+    const labelElement = submitButton.querySelector('.btn-submit__text');
+    if (labelElement) {
+      labelElement.textContent = label;
+    } else {
+      submitButton.textContent = label;
+    }
+
+    submitButton.classList.toggle('btn-submit--reverse', reverse);
+  }
+}
+
+function setFeedbackMessage(type) {
+  const card = document.querySelector('.card');
+  if (!card) {
+    return;
+  }
+
+  let feedback = document.getElementById('quiz-feedback');
+  if (!feedback) {
+    feedback = document.createElement('p');
+    feedback.id = 'quiz-feedback';
+    feedback.className = 'quiz-feedback';
+    card.appendChild(feedback);
+  }
+
+  feedback.classList.remove('quiz-feedback--success', 'quiz-feedback--error');
+
+  if (type === 'success') {
+    feedback.textContent = 'BONNE REPONSE !';
+    feedback.classList.add('quiz-feedback--success');
+    feedback.hidden = false;
+    return;
+  }
+
+  if (type === 'error') {
+    feedback.textContent = 'MAUVAISE REPONSE...';
+    feedback.classList.add('quiz-feedback--error');
+    feedback.hidden = false;
+    return;
+  }
+
+  feedback.hidden = true;
+}
+
+function resetQcmState() {
+  selectedAnswerId = null;
+  submitMode = 'validate';
+  setSubmitButtonLabel('Valider', false);
+  setFeedbackMessage('none');
+}
+
+function selectQcmOption(button) {
+  const allButtons = document.querySelectorAll('.qcm-option');
+  allButtons.forEach((btn) => {
+    btn.classList.remove('qcm-option--active');
+  });
+
+  button.classList.add('qcm-option--active');
+  selectedAnswerId = Number(button.dataset.repId);
+}
+
+function setOptionResultIcon(button, isCorrect) {
+  const marker = button.querySelector('.qcm-option__marker');
+  if (!marker) {
+    return;
+  }
+
+  marker.innerHTML = '';
+  const icon = document.createElement('img');
+  icon.src = isCorrect ? CHECK_ICON_SRC : ERROR_ICON_SRC;
+  icon.alt = '';
+  icon.className = 'qcm-option__marker-icon';
+  marker.appendChild(icon);
+}
 
 /**
  * Récupérer toutes les questions depuis l'API
@@ -51,24 +135,43 @@ export async function displayQuestion(questionId) {
 
   const question = data.question;
   const reponses = data.reponses;
+  currentQuestionData = data;
 
-  // Mettre à jour le titre et la progression
-  const questionTitle = document.getElementById('question-title');
+  // Mettre à jour l'index courant
+  const index = allQuestions.findIndex((q) => Number(q.id) === Number(questionId));
+  if (index >= 0) {
+    currentQuestionIndex = index;
+  }
+
+  // Récupérer les éléments HTML
   const progressIndicator = document.getElementById('progress-indicator');
+  const questionTitle = document.getElementById('question-title');
+  const questionHint = document.getElementById('question-hint');
+  if (progressIndicator) {
+    progressIndicator.textContent = `${question.ordre}/${totalQuestions}`;
+  }
 
   if (questionTitle) {
-    questionTitle.textContent = question.intitule;
+    const cleanedQuestion = String(question.intitule || '').replace(/^\s*\d+\.\s*/, '');
+    questionTitle.textContent = `${question.ordre}. ${cleanedQuestion}`;
   }
 
-  if (progressIndicator) {
-    progressIndicator.textContent = `Question ${currentQuestionIndex + 1} / ${totalQuestions}`;
+  if (questionHint) {
+    const indice = (question.indice || '').trim();
+    if (indice) {
+      questionHint.hidden = false;
+      questionHint.textContent = `(${indice})`;
+    } else {
+      questionHint.hidden = true;
+    }
   }
 
-  // Afficher la bonne template selon le type de question
+  resetQcmState();
+
   if (question.type === 'qcm') {
     displayQCM(reponses);
   } else if (question.type === 'texte') {
-    displayTextQuestion(question);
+    displayTextQuestion(question, reponses);
   } else if (question.type === 'images') {
     displayImageQuestion(reponses);
   }
@@ -82,43 +185,24 @@ function displayQCM(reponses) {
 
   if (!container) return;
 
-  // Vider le container
   container.innerHTML = '';
 
-  // Créer les boutons pour chaque réponse
   reponses.forEach((reponse) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'qcm-option';
-    button.textContent = reponse.intitule;
+    button.innerHTML = `
+      <span class="qcm-option__text">${reponse.intitule}</span>
+      <span class="qcm-option__marker" aria-hidden="true"></span>
+    `;
     button.dataset.repId = reponse.id;
     button.dataset.isCorrect = reponse.is_correct ? 'true' : 'false';
 
-    // Ajouter les styles básicos
-    button.style.cssText = `
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      background-color: #f5f1ee;
-      border: 2px solid #864b1e;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    `;
-
-    // Ajouter des événements
-    button.addEventListener('mouseover', () => {
-      button.style.backgroundColor = '#e8dfd5';
-    });
-
-    button.addEventListener('mouseout', () => {
-      button.style.backgroundColor = '#f5f1ee';
-    });
-
     button.addEventListener('click', () => {
-      handleQCMAnswer(button, reponses);
+      if (submitMode !== 'validate') {
+        return;
+      }
+      selectQcmOption(button);
     });
 
     container.appendChild(button);
@@ -126,38 +210,72 @@ function displayQCM(reponses) {
 }
 
 /**
- * Gérer la réponse QCM
+ * Gérer le bouton principal (Valider/Corriger/Suivant)
  */
-function handleQCMAnswer(button, allOptions) {
-  // Désactiver tous les boutons
-  const allButtons = document.querySelectorAll('.qcm-option');
-  allButtons.forEach(btn => btn.disabled = true);
-
-  // Ajouter couleur selon si correct ou pas
-  if (button.dataset.isCorrect === 'true') {
-    button.style.backgroundColor = '#4caf50'; // Vert
-    button.style.color = 'white';
-  } else {
-    button.style.backgroundColor = '#f44336'; // Rouge
-    button.style.color = 'white';
+export function handleSubmitAction() {
+  if (!currentQuestionData || !currentQuestionData.question) {
+    return;
   }
 
-  // Afficher la bonne réponse
-  allButtons.forEach(btn => {
-    if (btn.dataset.isCorrect === 'true') {
-      btn.style.backgroundColor = '#4caf50';
-      btn.style.color = 'white';
-    }
+  if (submitMode === 'next') {
+    nextQuestion();
+    return;
+  }
+
+  if (submitMode === 'retry') {
+    displayQuestion(currentQuestionData.question.id);
+    return;
+  }
+
+  if (currentQuestionData.question.type !== 'qcm') {
+    nextQuestion();
+    return;
+  }
+
+  if (!selectedAnswerId) {
+    return;
+  }
+
+  const allButtons = document.querySelectorAll('.qcm-option');
+  const selectedButton = Array.from(allButtons).find(
+    (btn) => Number(btn.dataset.repId) === selectedAnswerId
+  );
+
+  if (!selectedButton) {
+    return;
+  }
+
+  const isCorrect = selectedButton.dataset.isCorrect === 'true';
+  allButtons.forEach((btn) => {
+    btn.disabled = true;
+    btn.classList.remove('qcm-option--active');
   });
 
-  console.log(`Réponse sélectionnée: ${button.textContent}, Correct: ${button.dataset.isCorrect}`);
+  if (isCorrect) {
+    selectedButton.classList.add('qcm-option--correct');
+    setOptionResultIcon(selectedButton, true);
+    setFeedbackMessage('success');
+    submitMode = 'next';
+    setSubmitButtonLabel('Suivant', false);
+  } else {
+    selectedButton.classList.add('qcm-option--incorrect');
+    setOptionResultIcon(selectedButton, false);
+    setFeedbackMessage('error');
+    submitMode = 'retry';
+    setSubmitButtonLabel('Corriger', true);
+  }
 }
 
 /**
  * Afficher une question texte
  */
-function displayTextQuestion(question) {
+function displayTextQuestion(question, reponses) {
   const textarea = document.getElementById('text-answer-input');
+  const templateAnswers = document.getElementById('text-answers-template');
+
+  if (templateAnswers) {
+    templateAnswers.textContent = reponses.map((reponse) => reponse.intitule).join(' | ');
+  }
 
   if (textarea) {
     textarea.placeholder = 'Écrivez votre réponse ici...';
@@ -178,26 +296,19 @@ function displayImageQuestion(reponses) {
   reponses.forEach((reponse) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'image-option';
-    button.textContent = `Image: ${reponse.intitule}`;
+    button.className = 'qcm-option';
+    button.innerHTML = `
+      <span class="qcm-option__text">${reponse.intitule}</span>
+      <span class="qcm-option__marker" aria-hidden="true"></span>
+    `;
     button.dataset.repId = reponse.id;
     button.dataset.isCorrect = reponse.is_correct ? 'true' : 'false';
 
-    button.style.cssText = `
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      background-color: #f5f1ee;
-      border: 2px solid #864b1e;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    `;
-
     button.addEventListener('click', () => {
-      handleQCMAnswer(button, reponses);
+      if (submitMode !== 'validate') {
+        return;
+      }
+      selectQcmOption(button);
     });
 
     container.appendChild(button);
@@ -213,8 +324,7 @@ export function nextQuestion() {
     const nextQuestionId = allQuestions[currentQuestionIndex].id;
     displayQuestion(nextQuestionId);
   } else {
-    console.log('✅ Quiz terminé!');
-    alert('Quiz terminé! Merci pour votre participation.');
+    window.location.href = './remerciements-template.html';
   }
 }
 
@@ -227,23 +337,6 @@ export function previousQuestion() {
     const prevQuestionId = allQuestions[currentQuestionIndex].id;
     displayQuestion(prevQuestionId);
   }
-}
-
-/**
- * Obtenir la question actuelle
- */
-export function getCurrentQuestion() {
-  if (currentQuestionIndex < allQuestions.length) {
-    return allQuestions[currentQuestionIndex];
-  }
-  return null;
-}
-
-/**
- * Obtenir l'index de la question actuelle
- */
-export function getCurrentQuestionIndex() {
-  return currentQuestionIndex;
 }
 
 /**

@@ -1,0 +1,16 @@
+{
+  "inputs": [],
+  "servers": {
+    "figma": {
+      "url": "https://mcp.figma.com/mcp",
+      "type": "http"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-adf31343-404b-42a6-b21c-3012fd7d7f4a"
+      }
+    }
+  }
+}
