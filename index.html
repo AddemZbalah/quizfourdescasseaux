@@ -49,7 +49,11 @@
 
       V.renderLoading = function () {
         const content = document.querySelector("#content");
-        content.innerHTML = Loading;
+        content.style.opacity = "0";
+        setTimeout(() => {
+          content.innerHTML = Loading;
+          content.style.opacity = "1";
+        }, 400);
       };
 
       C.start();

@@ -62,4 +62,5 @@ h4 {
   width: 100%;
   height: auto;
   margin-top: 2rem;
+  transition: opacity 0.4s ease-in-out;
 }
