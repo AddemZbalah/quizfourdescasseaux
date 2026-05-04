@@ -1,23 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Four des Casseaux</title>
+    <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
+    <link href="./frontend/css/base.css" rel="stylesheet" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Four des Casseaux</title>
-  <link href="/Quiz/frontend/src/style.css" rel="stylesheet">
-</head>
+  <body>
+    <header class="header">
+      <a href="https://espaceporcelaine.com" class="header__link">
+        <img
+          src="./frontend/assets/arrow_left.svg"
+          alt="Flèche de retour"
+          class="header__linkimg"
+        />
+      </a>
+      <img
+        src="./frontend/assets/logo.svg"
+        alt="Logo du Four des Casseaux"
+        class="header__logo"
+      />
+    </header>
 
-<body class="bg-[#f5f1ee] h-screen flex flex-col items-center justify-center gap-4 font-sans">
-  <h1 class="text-3xl text-[#2d114b] font-bold font-cabin">Four des Casseaux Dev</h1>
-  <a href="/Quiz/frontend/src/quiz-templates/qcm-template.html"
-    class="px-6 py-4 bg-[#864b1e] text-white rounded-lg font-sans">Voir
-    Template QCM</a>
-  <a href="/Quiz/frontend/src/quiz-templates/text-template.html"
-    class="px-6 py-4 bg-[#864b1e] text-white rounded-lg font-sans">Voir
-    Template
-    Texte</a>
-  <script src="/Quiz/frontend/src/main.js" type="module"></script>
-</body>
+    <main class="main" id="content"></main>
 
+    <script type="module">
+      import { Accueil } from "./frontend/templates/Accueil/script.js";
+      import { Loading } from "./frontend/templates/Loading/script.js";
+
+      window.C = {};
+
+      C.handlerLoading = function () {
+        V.renderLoading();
+      };
+
+      C.start = function () {
+        V.renderAccueil();
+      };
+
+      window.V = {};
+
+      V.renderAccueil = function () {
+        const content = document.querySelector("#content");
+        content.innerHTML = Accueil.format("C.handlerLoading()");
+      };
+
+      V.renderLoading = function () {
+        const content = document.querySelector("#content");
+        content.innerHTML = Loading;
+      };
+
+      C.start();
+    </script>
+  </body>
 </html>
