@@ -1,3 +1,93 @@
+.qcm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding-inline: 1rem;
+  color: var(--color-dark-blue);
+}
+
+.qcm__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 10px;
+}
+
+.qcm__title {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.qcm__progress {
+  margin: 0;
+  color: var(--color-brown);
+  font-size: 1.5rem;
+}
+
+.qcm__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: solid 1px var(--color-brown);
+  border-radius: 15px;
+}
+
+.qcm__cont {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.qcm__question {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  justify-content: start;
+  width: 100%;
+  height: 100%;
+  font-size: 1.15rem;
+}
+
+.qcm__number {
+  margin: 0;
+  font-weight: 600;
+}
+
+.qcm__intitule {
+  margin: 0;
+}
+
+.qcm__hint {
+  margin: 0;
+}
+
+.qcm__options {
+}
+
+.qcm__responsecont {
+}
+
+.qcm__response {
+}
+
+.qcm__selector {
+}
+
+.qcm__form {
+}
+
 .qcm__button {
   display: flex;
   flex-direction: row;

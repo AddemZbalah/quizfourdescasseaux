@@ -1,21 +1,26 @@
 <section class="qcm">
   <section class="qcm__info">
-    <h1 class="qcm__title">QUESTION</h1>
+    <h2 class="qcm__title">QUESTION</h2>
     <p class="qcm__progress" id="progress-indicator">{{ordre}}/{{total}}</p>
   </section>
 
   <section class="qcm__card">
     <div class="qcm__cont">
-      <p id="question-title" class="qcm__intitule">{{ordre}}. {{question}}</p>
-      <p id="question-hint" class="qcm__hint" hidden>{{indice}}</p>
+      <div class="qcm__question">
+        <p id="question-number" class="qcm__number">{{ordre}}.</p>
+        <p id="question-title" class="qcm__intitule">{{question}}</p>
+      </div>
+      <p id="question-hint" class="qcm__hint">({{indice}})</p>
     </div>
 
     <div id="qcm-options-container" class="qcm__options">{{reponses}}</div>
+
+    <div class="qcm__result">{{resultat}}</div>
   </section>
 
   <form action="./text-template.html" class="qcm__form">
     <button class="qcm__button" onclick="{{handler}}">
-      Commencer
+      {{action}}
       <img
         src="./frontend/assets/arrow_right.svg"
         alt="Flèche de continuation"
