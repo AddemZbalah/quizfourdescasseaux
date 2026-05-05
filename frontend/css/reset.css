@@ -34,7 +34,7 @@ ol[role="list"] {
 
 /* Set core body defaults */
 body {
-  width: auto;
+    width: auto;
   height: 100vh;
   margin: 0;
   padding: 0;

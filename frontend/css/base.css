@@ -64,3 +64,8 @@ h4 {
   margin-top: 2rem;
   transition: opacity 0.4s ease-in-out;
 }
+
+.reponse-icon {
+  width: auto;
+  height: 100%;
+}

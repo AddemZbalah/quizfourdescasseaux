@@ -1,68 +1,61 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz Four des Casseaux</title>
-    <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
-    <link href="./frontend/css/base.css" rel="stylesheet" />
-  </head>
 
-  <body>
-    <header class="header">
-      <a href="https://espaceporcelaine.com" class="header__link">
-        <img
-          src="./frontend/assets/arrow_left.svg"
-          alt="Flèche de retour"
-          class="header__linkimg"
-        />
-      </a>
-      <img
-        src="./frontend/assets/logo.svg"
-        alt="Logo du Four des Casseaux"
-        class="header__logo"
-      />
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Four des Casseaux</title>
+  <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
+  <link href="./frontend/css/base.css" rel="stylesheet" />
+</head>
 
-    <main class="main" id="content"></main>
+<body>
+  <header class="header">
+    <a href="https://espaceporcelaine.com" class="header__link">
+      <img src="./frontend/assets/arrow_left.svg" alt="Flèche de retour" class="header__linkimg" />
+    </a>
+    <img src="./frontend/assets/logo.svg" alt="Logo du Four des Casseaux" class="header__logo" />
+  </header>
 
-    <script type="module">
-      import { Accueil } from "./frontend/templates/Accueil/script.js";
-      import { Loading } from "./frontend/templates/Loading/script.js";
-      import { QCM } from "./frontend/templates/QCM/script.js";
+  <main class="main" id="content"></main>
 
-      window.C = {};
+  <script type="module">
+    import { Accueil } from "./frontend/templates/Accueil/script.js";
+    import { Loading } from "./frontend/templates/Loading/script.js";
+    import { QCM } from "./frontend/templates/QCM/script.js";
 
-      C.handlerLoading = function () {
-        V.renderLoading();
-      };
+    window.C = {};
 
-      C.start = function () {
-        V.renderQCM();
-      };
+    C.handlerLoading = function () {
+      V.renderLoading();
+    };
 
-      window.V = {};
+    C.start = function () {
+      V.renderQCM();
+    };
 
-      V.renderAccueil = function () {
-        const content = document.querySelector("#content");
-        content.innerHTML = Accueil.format("C.handlerLoading()");
-      };
+    window.V = {};
 
-      V.renderLoading = function () {
-        const content = document.querySelector("#content");
-        content.style.opacity = "0";
-        setTimeout(() => {
-          content.innerHTML = Loading;
-          content.style.opacity = "1";
-        }, 400);
-      };
+    V.renderAccueil = function () {
+      const content = document.querySelector("#content");
+      content.innerHTML = Accueil.format("C.handlerLoading()");
+    };
 
-      V.renderQCM = function () {
-        const content = document.querySelector("#content");
-        content.innerHTML = QCM;
-      };
+    V.renderLoading = function () {
+      const content = document.querySelector("#content");
+      content.style.opacity = "0";
+      setTimeout(() => {
+        content.innerHTML = Loading;
+        content.style.opacity = "1";
+      }, 400);
+    };
 
-      C.start();
-    </script>
-  </body>
+    V.renderQCM = async function () {
+      await QCM.render(1);
+    };
+
+    C.start();
+  </script>
+</body>
+
 </html>

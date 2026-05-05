@@ -15,6 +15,7 @@
   --accent-true: rgba(44, 217, 44, 0.07);
   --color-false: #971414;
   --accent-false: rgba(217, 47, 44, 0.07);
+  --accent-selected: rgba(212, 163, 115, 0.32);
 
   --font-montserrat: "Montserrat", sans-serif;
   --font-cabin: "Cabin", sans-serif;
