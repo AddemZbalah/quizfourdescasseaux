@@ -57,9 +57,8 @@
         }, 400);
       };
 
-      V.renderQCM = function () {
-        const content = document.querySelector("#content");
-        content.innerHTML = QCM;
+      V.renderQCM = async function () {
+        await QCM.render(1);
       };
 
       C.start();
