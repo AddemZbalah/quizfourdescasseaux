@@ -9,7 +9,9 @@ const template = await fetch("/Quiz/frontend/templates/QCM/qcm-template.html")
     return "";
   });
 
-const repTemplate = await fetch("/Quiz/frontend/templates/QCM/qcm-reponse-template.html")
+const repTemplate = await fetch(
+  "/Quiz/frontend/templates/QCM/qcm-reponse-template.html",
+)
   .then((response) => {
     if (!response.ok) throw new Error("");
     return response.text();
@@ -20,8 +22,8 @@ const repTemplate = await fetch("/Quiz/frontend/templates/QCM/qcm-reponse-templa
 
 const QCM = {
   /**
-  * @param {string|number} questionId
-  */
+   * @param {string|number} questionId
+   */
   async render(questionId) {
     const container = document.querySelector("#content");
     if (!container) {
@@ -30,7 +32,9 @@ const QCM = {
 
     const questionsData = await API.getAllQuestions();
 
-    const found = questionsData.questions?.find((q) => Number(q.ordre) === Number(questionId));
+    const found = questionsData.questions?.find(
+      (q) => Number(q.ordre) === Number(questionId),
+    );
 
     if (!found) return;
 
@@ -44,14 +48,27 @@ const QCM = {
 
     if (Array.isArray(reponsesData.reponses)) {
       for (const reponse of reponsesData.reponses) {
-        reponsesHtml += repTemplate.replaceAll("{{reponse}}", String(reponse.intitule ?? ""));
+        reponsesHtml += repTemplate.replaceAll(
+          "{{reponse}}",
+          String(reponse.intitule ?? ""),
+        );
       }
     }
 
     const html = template
       .replaceAll("{{ordre}}", String(question.ordre ?? "N/A"))
-      .replaceAll("{{total}}", String(Array.isArray(questionsData.questions) ? questionsData.questions.length : 0))
-      .replaceAll("{{question}}", String(question.intitule ?? "Pas de question"))
+      .replaceAll(
+        "{{total}}",
+        String(
+          Array.isArray(questionsData.questions)
+            ? questionsData.questions.length
+            : 0,
+        ),
+      )
+      .replaceAll(
+        "{{question}}",
+        String(question.intitule ?? "Pas de question"),
+      )
       .replaceAll("{{indice}}", String(question.indice ?? ""))
       .replaceAll("{{reponses}}", reponsesHtml)
       .replaceAll("{{action}}", "Valider");

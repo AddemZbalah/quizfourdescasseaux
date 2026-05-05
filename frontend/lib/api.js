@@ -22,7 +22,9 @@ async function fetchJsonWithFallback(path) {
     lastResponse = response;
   }
 
-  throw new Error(`Impossible de récupérer les données (status ${lastResponse ? lastResponse.status : "unknown"})`);
+  throw new Error(
+    `Impossible de récupérer les données (status ${lastResponse ? lastResponse.status : "unknown"})`,
+  );
 }
 
 const API_BASE_URL = API_BASE_URLS[0];
