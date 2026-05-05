@@ -6,7 +6,9 @@
   width: 100%;
   height: 100%;
   padding-inline: 1rem;
+  padding-top: 3rem;
   color: var(--color-dark-blue);
+  gap: 27px;
 }
 
 .qcm__info {
@@ -37,6 +39,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
+  padding: 18px;
   border: solid 1px var(--color-brown);
   border-radius: 15px;
 }
@@ -58,22 +61,44 @@
   width: 100%;
   height: 100%;
   font-size: 1.15rem;
+  gap: 5px;
 }
 
 .qcm__number {
+  width: fit-content;
   margin: 0;
   font-weight: 600;
 }
 
 .qcm__intitule {
+  flex: 1;
+  min-width: 0;
+  height: auto;
   margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .qcm__hint {
+  width: 100%;
+  height: auto;
   margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  font-size: 0.85rem;
 }
 
 .qcm__options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin: 1rem;
+  gap: 20px;
 }
 
 .qcm__responsecont {
@@ -83,6 +108,12 @@
 }
 
 .qcm__selector {
+}
+
+.qcm__result {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .qcm__form {
