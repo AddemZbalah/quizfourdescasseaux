@@ -1,0 +1,21 @@
+.qcm__button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: fit-content;
+  padding: 1.5rem 6rem;
+  gap: 1rem;
+  color: var(--color-light);
+  font-family: var(--font-cabin);
+  font-size: 1.15rem;
+  background-color: var(--color-dark-blue);
+  border-radius: 15px;
+  border: none;
+}
+
+.qcm__buttonimg {
+  width: auto;
+  height: 1rem;
+}

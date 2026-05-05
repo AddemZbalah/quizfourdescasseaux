@@ -29,6 +29,7 @@
     <script type="module">
       import { Accueil } from "./frontend/templates/Accueil/script.js";
       import { Loading } from "./frontend/templates/Loading/script.js";
+      import { QCM } from "./frontend/templates/QCM/script.js";
 
       window.C = {};
 
@@ -37,7 +38,7 @@
       };
 
       C.start = function () {
-        V.renderAccueil();
+        V.renderQCM();
       };
 
       window.V = {};
@@ -54,6 +55,11 @@
           content.innerHTML = Loading;
           content.style.opacity = "1";
         }, 400);
+      };
+
+      V.renderQCM = function () {
+        const content = document.querySelector("#content");
+        content.innerHTML = QCM;
       };
 
       C.start();
