@@ -61,6 +61,31 @@
         await QCM.render(1);
       };
 
+      // Event listener pour gérer la sélection des réponses
+      document
+        .querySelector("#content")
+        .addEventListener("click", function (e) {
+          const responseContainer = e.target.closest(".qcm__responsecont");
+
+          if (responseContainer) {
+            // Retirer la classe selected de tous les conteneurs
+            document
+              .querySelectorAll(".qcm__responsecont")
+              .forEach((container) => {
+                container.classList.remove("qcm__responsecont--selected");
+                const circle = container.querySelector(".qcm__circle");
+                if (circle) circle.classList.remove("qcm__circle--selected");
+              });
+
+            // Ajouter la classe selected au conteneur cliqué
+            responseContainer.classList.add("qcm__responsecont--selected");
+            const selectedCircle =
+              responseContainer.querySelector(".qcm__circle");
+            if (selectedCircle)
+              selectedCircle.classList.add("qcm__circle--selected");
+          }
+        });
+
       C.start();
     </script>
   </body>
