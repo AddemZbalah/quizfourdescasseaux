@@ -24,7 +24,9 @@
       />
     </header>
 
-    <main class="main" id="content"></main>
+    <main class="main" id="content">
+      <!-- Le contenu dynamique sera injecté ici -->
+    </main>
 
     <script type="module">
       import { Accueil } from "./frontend/templates/Accueil/script.js";
@@ -37,9 +39,7 @@
         V.renderLoading();
       };
 
-      C.start = function () {
-        V.renderQCM();
-      };
+      C.start = function () {};
 
       window.V = {};
 
