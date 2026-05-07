@@ -32,6 +32,7 @@
       import { Accueil } from "./frontend/templates/Accueil/script.js";
       import { Loading } from "./frontend/templates/Loading/script.js";
       import { QCM } from "./frontend/templates/QCM/script.js";
+      import { Text } from "./frontend/templates/Text/script.js";
 
       window.C = {};
 
@@ -57,8 +58,12 @@
         }, 400);
       };
 
-      V.renderQCM = async function () {
-        await QCM.render(1);
+      V.renderQCM = async function (data) {
+        await QCM.render(data);
+      };
+
+      V.renderText = async function (data) {
+        await Text.render(data);
       };
 
       // Event listener pour gérer la sélection des réponses
