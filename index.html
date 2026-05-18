@@ -1,72 +1,380 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz Four des Casseaux</title>
-    <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
-    <link href="./frontend/css/base.css" rel="stylesheet" />
-  </head>
 
-  <body>
-    <header class="header">
-      <a href="https://espaceporcelaine.com" class="header__link">
-        <img
-          src="./frontend/assets/arrow_left.svg"
-          alt="Flèche de retour"
-          class="header__linkimg"
-        />
-      </a>
-      <img
-        src="./frontend/assets/logo.svg"
-        alt="Logo du Four des Casseaux"
-        class="header__logo"
-      />
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Four des Casseaux</title>
+  <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
+  <link href="./frontend/css/base.css" rel="stylesheet" />
+</head>
 
-    <main class="main" id="content">
-      <!-- Le contenu dynamique sera injecté ici -->
-    </main>
+<body>
+  <header class="header">
+    <a href="https://espaceporcelaine.com" class="header__link">
+      <img src="./frontend/assets/arrow_left.svg" alt="Flèche de retour" class="header__linkimg" />
+    </a>
+    <img src="./frontend/assets/logo.svg" alt="Logo du Four des Casseaux" class="header__logo" />
+  </header>
 
-    <script type="module">
-      import { Accueil } from "./frontend/templates/Accueil/script.js";
-      import { Loading } from "./frontend/templates/Loading/script.js";
-      import { QCM } from "./frontend/templates/QCM/script.js";
-      import { Text } from "./frontend/templates/Text/script.js";
+  <main class="main" id="content">
+    <!-- Le contenu dynamique sera injecté ici -->
+  </main>
 
-      window.C = {};
+  <script type="module">
+    import { API } from "./frontend/lib/api.js";
+    import { Accueil } from "./frontend/templates/Accueil/script.js";
+    import { Loading } from "./frontend/templates/Loading/script.js";
+    import { QCM } from "./frontend/templates/QCM/script.js";
+    import { Text } from "./frontend/templates/Text/script.js";
 
-      C.handlerLoading = function () {
-        V.renderLoading();
-      };
+    window.C = {};
 
-      C.start = function () {};
+    C.handlerLoading = function () {
+      V.renderLoading();
+    };
 
-      window.V = {};
+    C.handlerVerif = async function (questionId, type) {
+      try {
+        const reponsesData = await API.getAnswers(questionId);
+        if (!reponsesData || !reponsesData.reponses) return;
 
-      V.renderAccueil = function () {
-        const content = document.querySelector("#content");
-        content.innerHTML = Accueil.format("C.handlerLoading()");
-      };
+        const reponses = reponsesData.reponses;
+        let isCorrect = false;
 
-      V.renderLoading = function () {
-        const content = document.querySelector("#content");
-        content.style.opacity = "0";
-        setTimeout(() => {
-          content.innerHTML = Loading;
-          content.style.opacity = "1";
-        }, 400);
-      };
+        if (type === "QCM") {
+          const selectedCont = document.querySelector(".qcm__responsecont--selected");
+          if (!selectedCont) return; // Aucune réponse sélectionnée
+          const selectedText = selectedCont.querySelector(".qcm__reponse").textContent;
 
-      V.renderQCM = async function (data) {
-        await QCM.render(data);
-      };
+          let correctReponse = null;
+          for (let i = 0; i < reponses.length; i++) {
+            if (reponses[i].is_correct == true) {
+              correctReponse = reponses[i];
+              break;
+            }
+          }
 
-      V.renderText = async function (data) {
-        await Text.render(data);
-      };
+          if (correctReponse && selectedText === correctReponse.intitule) {
+            isCorrect = true;
+          }
 
-      // Event listener pour gérer la sélection des réponses
+          if (isCorrect) {
+            selectedCont.classList.add("qcm__responsecont--true");
+            console.log("Réponse correcte - classe ajoutée:", "qcm__responsecont--true");
+
+            // Remplacer le cercle par true.svg
+            const selector = selectedCont.querySelector(".qcm__selector");
+            if (selector) {
+              const svg = selector.querySelector("svg");
+              if (svg) svg.style.opacity = "0";
+              const img = document.createElement("img");
+              img.src = "./frontend/assets/true.svg";
+              img.alt = "Réponse correcte";
+              img.style.width = "24px";
+              img.style.height = "24px";
+              selector.appendChild(img);
+            }
+
+            const resultEl = document.querySelector(".qcm__result");
+            if (resultEl) {
+              resultEl.textContent = "Bonne réponse !";
+              resultEl.className = "qcm__result qcm__result--true";
+              console.log("Résultat affiché: Bonne réponse !");
+            }
+          } else {
+            selectedCont.classList.add("qcm__responsecont--false");
+            console.log("Réponse fausse - classe ajoutée:", "qcm__responsecont--false");
+
+            // Remplacer le cercle par false.svg
+            const selector = selectedCont.querySelector(".qcm__selector");
+            if (selector) {
+              const svg = selector.querySelector("svg");
+              if (svg) svg.style.opacity = "0";
+              const img = document.createElement("img");
+              img.src = "./frontend/assets/false.svg";
+              img.alt = "Réponse incorrecte";
+              img.style.width = "24px";
+              img.style.height = "24px";
+              selector.appendChild(img);
+            }
+
+            const resultEl = document.querySelector(".qcm__result");
+            if (resultEl) {
+              resultEl.textContent = "Mauvaise réponse !";
+              resultEl.className = "qcm__result qcm__result--false";
+              console.log("Résultat affiché: Mauvaise réponse !");
+            }
+          }
+        } else if (type === "TEXT") {
+          // Récupérer tous les inputs TEXT
+          const inputEls = document.querySelectorAll(".text__reponse");
+          if (inputEls.length === 0) return;
+
+          // Récupérer les valeurs saisies par l'utilisateur
+          const userAnswers = [];
+          for (let k = 0; k < inputEls.length; k++) {
+            const value = inputEls[k].value.trim();
+            if (value) {
+              userAnswers.push(value.toLowerCase());
+            }
+          }
+
+          // Récupérer toutes les réponses correctes de la base de données
+          let correctAnswers = [];
+          for (let i = 0; i < reponses.length; i++) {
+            if (reponses[i].is_correct == true) {
+              correctAnswers.push(reponses[i].intitule.toLowerCase());
+            }
+          }
+
+          // Vérifier que chaque réponse de l'utilisateur correspond à une réponse correcte unique
+          let allCorrect = true;
+          let usedForValidation = [];
+          for (let i = 0; i < userAnswers.length; i++) {
+            let found = false;
+            for (let j = 0; j < correctAnswers.length; j++) {
+              if (userAnswers[i] === correctAnswers[j] && !usedForValidation.includes(j)) {
+                found = true;
+                usedForValidation.push(j);
+                break;
+              }
+            }
+            if (!found) {
+              allCorrect = false;
+              break;
+            }
+          }
+
+          // Vérifier que l'utilisateur a fourni exactement le bon nombre de réponses
+          if (allCorrect && userAnswers.length === correctAnswers.length) {
+            isCorrect = true;
+          }
+
+          // Appliquer les styles à CHAQUE input
+          let usedForDisplay = [];
+          for (let m = 0; m < inputEls.length; m++) {
+            const inputValue = inputEls[m].value.trim().toLowerCase();
+            const responseCont = inputEls[m].closest(".text__responsecont");
+
+            // Vérifier si cette réponse est correcte et n'a pas déjà été validée pour un autre input
+            let isThisInputCorrect = false;
+            if (inputValue) {
+              for (let n = 0; n < correctAnswers.length; n++) {
+                if (inputValue === correctAnswers[n] && !usedForDisplay.includes(n)) {
+                  isThisInputCorrect = true;
+                  usedForDisplay.push(n);
+                  break;
+                }
+              }
+            }
+
+            if (isThisInputCorrect) {
+              if (responseCont) responseCont.classList.add("text__responsecont--true");
+            } else {
+              if (responseCont) responseCont.classList.add("text__responsecont--false");
+            }
+          }
+
+          const resultEl = document.querySelector(".text__result");
+          if (isCorrect) {
+            if (resultEl) {
+              resultEl.textContent = "Bonne réponse !";
+              resultEl.className = "text__result text__result--true";
+            }
+          } else {
+            if (resultEl) {
+              resultEl.textContent = "Mauvaise réponse !";
+              resultEl.className = "text__result text__result--false";
+            }
+          }
+        }
+
+        // Gestion du bouton
+        let btn = null;
+        if (type === "QCM") {
+          btn = document.querySelector(".qcm__button");
+        } else if (type === "TEXT") {
+          btn = document.querySelector(".text__button");
+        }
+
+        if (btn) {
+          // Sauvegarder les paramètres pour pouvoir restaurer après reset
+          btn.dataset.questionId = questionId;
+          btn.dataset.questionType = type;
+
+          if (isCorrect) {
+            btn.innerHTML = "Question suivante <img src=\"./frontend/assets/arrow_right.svg\" alt=\"Flèche de continuation\" class=\"qcm__buttonimg text__buttonimg icon-right\" />";
+            btn.onclick = function () {
+              C.goToNextQuestion();
+            };
+          } else {
+            btn.innerHTML = "<img src=\"./frontend/assets/arrow_left.svg\" alt=\"Flèche retour\" class=\"qcm__buttonimg text__buttonimg icon-left\" /> Corriger";
+            btn.disabled = false;
+            btn.onclick = function () {
+              C.resetQuestion();
+            };
+          }
+        }
+
+      } catch (error) {
+        console.error("Erreur lors de la validation:", error);
+      }
+    };
+
+    C.goToNextQuestion = async function () {
+      const allQuestions = await API.getAllQuestions();
+      const currentOrder = parseInt(document.querySelector(".qcm__progress, .text__progress")?.textContent.split("/")[0]) || 1;
+      const nextOrder = currentOrder + 1;
+
+      if (nextOrder <= allQuestions.questions.length) {
+        await C.renderQuestionByOrder(nextOrder);
+      }
+    };
+
+    C.resetQuestion = function () {
+      // Déterminer le type de question
+      const qcmBtn = document.querySelector(".qcm__button");
+      const textBtn = document.querySelector(".text__button");
+      const btn = qcmBtn || textBtn;
+      const questionType = btn?.dataset.questionType;
+
+      if (questionType === "QCM") {
+        // Retirer la classe selected de tous les conteneurs
+        document.querySelectorAll(".qcm__responsecont--selected").forEach(cont => {
+          cont.classList.remove("qcm__responsecont--selected");
+          const circle = cont.querySelector(".qcm__circle");
+          if (circle) circle.classList.remove("qcm__circle--selected");
+        });
+
+        // Retirer les classes de validation
+        document.querySelectorAll(".qcm__responsecont--true, .qcm__responsecont--false").forEach(cont => {
+          cont.classList.remove("qcm__responsecont--true", "qcm__responsecont--false");
+        });
+
+        // Restaurer les cercles SVG
+        document.querySelectorAll(".qcm__selector img").forEach(img => {
+          img.remove();
+        });
+        document.querySelectorAll(".qcm__selector svg").forEach(svg => {
+          svg.style.opacity = "1";
+        });
+
+        // Effacer le texte et les classes du résultat
+        const resultEl = document.querySelector(".qcm__result");
+        if (resultEl) {
+          resultEl.textContent = "";
+          resultEl.className = "qcm__result";
+        }
+
+        // Réactiver le bouton avec le handler original
+        if (qcmBtn) {
+          qcmBtn.disabled = false;
+          qcmBtn.textContent = "Valider";
+
+          const questionId = qcmBtn.dataset.questionId;
+          const type = qcmBtn.dataset.questionType;
+          if (questionId && type) {
+            qcmBtn.onclick = function () {
+              C.handlerVerif(questionId, type);
+            };
+          }
+        }
+      } else if (questionType === "TEXT") {
+        // Vider uniquement les inputs des réponses fausses
+        const falseContainers = document.querySelectorAll(".text__responsecont--false");
+        for (let p = 0; p < falseContainers.length; p++) {
+          const input = falseContainers[p].querySelector(".text__reponse");
+          if (input) input.value = "";
+        }
+
+        // Retirer les classes de validation de TOUS les conteneurs
+        document.querySelectorAll(".text__responsecont").forEach(cont => {
+          cont.classList.remove("text__responsecont--true", "text__responsecont--false");
+        });
+
+        // Effacer le texte et les classes du résultat
+        const resultEl = document.querySelector(".text__result");
+        if (resultEl) {
+          resultEl.textContent = "";
+          resultEl.className = "text__result";
+        }
+
+        // Réactiver le bouton avec le handler original
+        if (textBtn) {
+          textBtn.disabled = false;
+          textBtn.textContent = "Valider";
+
+          const questionId = textBtn.dataset.questionId;
+          const type = textBtn.dataset.questionType;
+          if (questionId && type) {
+            textBtn.onclick = function () {
+              C.handlerVerif(questionId, type);
+            };
+          }
+        }
+      }
+    };
+
+    C.renderQuestionByOrder = async function (order) {
+      try {
+        const allQuestions = await API.getAllQuestions();
+        const question = allQuestions.questions.find(q => Number(q.ordre) === Number(order));
+
+        if (!question) {
+          console.error(`Question avec ordre ${order} non trouvée`);
+          return;
+        }
+
+        const questionType = (question.type || "qcm");
+
+        if (questionType === "qcm") {
+          await V.renderQCM(order);
+        } else if (questionType === "texte") {
+          await V.renderText(order);
+        } else if (questionType === "images") {
+          // Pour le moment, traiter les images comme du texte ou une autre logique
+          await V.renderText(order);
+        } else {
+          console.error(`Type de question inconnu: ${questionType}`);
+        }
+      } catch (error) {
+        console.error("Erreur lors du rendu de la question:", error);
+      }
+    };
+
+    C.start = function () {
+      C.renderQuestionByOrder(1);
+    };
+
+    window.V = {};
+
+    V.renderAccueil = function () {
+      const content = document.querySelector("#content");
+      content.innerHTML = Accueil.format("C.handlerLoading()");
+    };
+
+    V.renderLoading = function () {
+      const content = document.querySelector("#content");
+      content.style.opacity = "0";
+      setTimeout(() => {
+        content.innerHTML = Loading;
+        content.style.opacity = "1";
+      }, 400);
+    };
+
+    V.renderQCM = async function (data) {
+      await QCM.render(data);
+      attachResponseListener();
+    };
+
+    V.renderText = async function (data) {
+      await Text.render(data);
+      attachResponseListener();
+    };
+
+    // Fonction pour attacher le listener de sélection des réponses
+    function attachResponseListener() {
       document
         .querySelector("#content")
         .addEventListener("click", function (e) {
@@ -90,8 +398,10 @@
               selectedCircle.classList.add("qcm__circle--selected");
           }
         });
+    }
 
-      C.start();
-    </script>
-  </body>
+    C.start();
+  </script>
+</body>
+
 </html>

@@ -55,6 +55,8 @@ const QCM = {
       }
     }
 
+    const indiceText = question.indice ? `(${question.indice})` : "";
+
     const html = template
       .replaceAll("{{ordre}}", String(question.ordre ?? "N/A"))
       .replaceAll(
@@ -69,9 +71,10 @@ const QCM = {
         "{{question}}",
         String(question.intitule ?? "Pas de question"),
       )
-      .replaceAll("{{indice}}", String(question.indice ?? ""))
+      .replaceAll("({{indice}})", indiceText)
       .replaceAll("{{reponses}}", reponsesHtml)
-      .replaceAll("{{action}}", "Valider");
+      .replaceAll("{{action}}", "Valider")
+      .replaceAll("{{handler}}", `C.handlerVerif(${questionIdResolved}, 'QCM')`);
 
     container.innerHTML = html;
   },

@@ -182,13 +182,16 @@
 }
 
 .text__button {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  width: fit-content;
+  flex-wrap: nowrap;
+  width: auto;
+  min-width: 300px;
   height: fit-content;
-  padding: 1.5rem 6rem;
+  padding: 1.5rem 2rem;
   gap: 1rem;
   color: var(--color-light);
   font-family: var(--font-cabin);
@@ -196,9 +199,19 @@
   background-color: var(--color-dark-blue);
   border-radius: 15px;
   border: none;
+  text-align: center;
 }
 
 .text__buttonimg {
+  position: absolute;
   width: auto;
   height: 1rem;
+}
+
+.icon-left {
+  left: 3rem;
+}
+
+.icon-right {
+  right: 3rem;
 }
