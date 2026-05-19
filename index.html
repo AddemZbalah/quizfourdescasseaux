@@ -27,11 +27,23 @@
     import { Loading } from "./frontend/templates/Loading/script.js";
     import { QCM } from "./frontend/templates/QCM/script.js";
     import { Text } from "./frontend/templates/Text/script.js";
+    import { Remerciements } from "./frontend/templates/Remerciements/script.js";
 
     window.C = {};
 
     C.handlerLoading = function () {
       V.renderLoading();
+      // Au bout de 4.5 secondes, on commence le fondu pour la première question
+      setTimeout(() => {
+        const content = document.querySelector("#content");
+        content.style.opacity = "0";
+        setTimeout(async () => {
+          await C.renderQuestionByOrder(1);
+          setTimeout(() => {
+            content.style.opacity = "1";
+          }, 50);
+        }, 400);
+      }, 4600);
     };
 
     C.handlerVerif = async function (questionId, type) {
@@ -204,7 +216,17 @@
           btn.dataset.questionType = type;
 
           if (isCorrect) {
-            btn.innerHTML = "Question suivante <img src=\"./frontend/assets/arrow_right.svg\" alt=\"Flèche de continuation\" class=\"qcm__buttonimg text__buttonimg icon-right\" />";
+            // Check si c'est la dernière question
+            const progressText = document.querySelector(".qcm__progress, .text__progress")?.textContent || "1/1";
+            const currentOrder = parseInt(progressText.split("/")[0]) || 1;
+            const totalQuestions = parseInt(progressText.split("/")[1]) || 1;
+
+            if (currentOrder >= totalQuestions) {
+              btn.innerHTML = "Terminé <img src=\"./frontend/assets/arrow_right.svg\" alt=\"Flèche de continuation\" class=\"qcm__buttonimg text__buttonimg icon-right\" />";
+            } else {
+              btn.innerHTML = "Question suivante <img src=\"./frontend/assets/arrow_right.svg\" alt=\"Flèche de continuation\" class=\"qcm__buttonimg text__buttonimg icon-right\" />";
+            }
+
             btn.onclick = function () {
               C.goToNextQuestion();
             };
@@ -227,8 +249,23 @@
       const currentOrder = parseInt(document.querySelector(".qcm__progress, .text__progress")?.textContent.split("/")[0]) || 1;
       const nextOrder = currentOrder + 1;
 
+      const content = document.querySelector("#content");
+      content.style.opacity = "0";
+
       if (nextOrder <= allQuestions.questions.length) {
-        await C.renderQuestionByOrder(nextOrder);
+        setTimeout(async () => {
+          await C.renderQuestionByOrder(nextOrder);
+          setTimeout(() => {
+            content.style.opacity = "1";
+          }, 50);
+        }, 400); // 400ms pour correspondre au CSS de base.css
+      } else {
+        setTimeout(() => {
+          V.renderRemerciements();
+          setTimeout(() => {
+            content.style.opacity = "1";
+          }, 50);
+        }, 400);
       }
     };
 
@@ -344,7 +381,7 @@
     };
 
     C.start = function () {
-      C.renderQuestionByOrder(1);
+      V.renderAccueil(); // Affiche la page d'accueil d'abord
     };
 
     window.V = {};
@@ -352,6 +389,11 @@
     V.renderAccueil = function () {
       const content = document.querySelector("#content");
       content.innerHTML = Accueil.format("C.handlerLoading()");
+    };
+
+    V.renderRemerciements = function () {
+      const content = document.querySelector("#content");
+      content.innerHTML = Remerciements.render();
     };
 
     V.renderLoading = function () {
