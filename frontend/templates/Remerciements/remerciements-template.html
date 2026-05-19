@@ -1,44 +1,36 @@
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Four des Casseaux - Merci</title>
-</head>
-
-<body class="app remerciements-page">
-  <header class="header">
-    <button class="header__button" aria-label="Retour">
-      <svg class="header__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M15 18l-6-6 6-6" />
+<section class="remerciements-main">
+  <div class="remerciements-check" aria-hidden="true">
+    <div class="remerciements-check__halo"></div>
+    <div class="remerciements-check__ring">
+      <svg
+        class="remerciements-check__icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+      >
+        <path d="M5 13l4 4L19 7" />
       </svg>
-    </button>
-    <img class="header__logo" src="../assets/logo.svg" alt="Logo Four des Casseaux">
-    <span class="header__button" aria-hidden="true"></span>
-  </header>
+    </div>
+  </div>
 
-  <main class="remerciements-main">
-    <section class="remerciements-check" aria-hidden="true">
-      <div class="remerciements-check__halo"></div>
-      <div class="remerciements-check__ring">
-        <svg class="remerciements-check__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-          <path d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-    </section>
+  <div class="remerciements-content">
+    <h1 class="remerciements-title">Merci !</h1>
+    <p class="remerciements-text">
+      Nous esperons que vous avez passé une bonne visite
+    </p>
+  </div>
 
-    <section class="remerciements-content">
-      <h1 class="remerciements-title">Merci !</h1>
-      <p class="remerciements-text">Nous esperons que vous avez passer une bonne visite</p>
-    </section>
-
-    <button onclick="C.start()" class="btn-submit remerciements-btn btn-submit--reverse"
-      aria-label="Retourner a l'accueil">
-      <img class="remerciements-btn__icon" src="./frontend/assets/arrow_left.svg" alt="">
-      <span>Retourner a l'accueil</span>
-    </button>
-  </main>
-</body>
-
-</html>
+  <button
+    onclick="C.start()"
+    class="btn-submit remerciements-btn btn-submit--reverse"
+    aria-label="Retourner a l'accueil"
+  >
+    <img
+      class="remerciements-btn__icon"
+      src="./frontend/assets/arrow_left.svg"
+      alt=""
+    />
+    <span>Retourner a l'accueil</span>
+  </button>
+</section>
