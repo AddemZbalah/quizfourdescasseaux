@@ -218,6 +218,58 @@
     </div>
   </div>
 
+  <!-- PARTIE : GESTION DES ECRANS DE CHARGEMENT EN PLEINE LARGEUR -->
+  <div class="admin-wrapper loading-wrapper">
+    <div class="admin-container list-container loading-config-container">
+      <h2>Gestion des écrans de transition (Loading)</h2>
+      <p class="help-text">
+        Vous pouvez gérer ici les écrans qui apparaissent entre deux questions pour diriger les visiteurs
+        (changement d'étage, exposition temporaire...).
+      </p>
+
+      <div id="loadingConfigContainer" class="loading-grid">
+        <!-- Injecté via JS -->
+      </div>
+
+      <template id="loadingConfigTemplate">
+        <div class="loading-config-row">
+
+          <button type="button" class="btn-remove loading-remove-btn" title="Supprimer cet écran">✕</button>
+
+          <div class="loading-input-group">
+            <label class="loading-label">Déclencheur :</label>
+            <div class="loading-flex-row">
+              <span>Juste avant la question</span>
+              <input type="number" min="1" class="loading-order-input form-input">
+            </div>
+          </div>
+
+          <div>
+            <label class="loading-label">Texte affiché :</label>
+            <textarea class="loading-text-input form-input" placeholder="Ex: La visite continue à l'étage..."
+              rows="3"></textarea>
+          </div>
+
+          <div class="loading-checkbox-group">
+            <label class="loading-checkbox-label">
+              <input type="checkbox" class="loading-active-input loading-checkbox-input">
+              <strong>Écran Activé</strong>
+            </label>
+            <label class="loading-checkbox-label tempo-label">
+              <input type="checkbox" class="loading-tempo-input loading-checkbox-input">
+              Exposition Temporaire ?
+            </label>
+          </div>
+
+        </div>
+      </template>
+
+      <button type="button" id="addLoadingBtn" class="btn-secondary loading-add-btn">+ Ajouter un écran de
+        transition</button>
+      <div id="loadingMessageBox" class="message hidden loading-msg-box"></div>
+    </div>
+  </div>
+
   <!-- Javascript du backoffice -->
   <script src="./admin.js"></script>
 </body>

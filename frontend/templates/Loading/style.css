@@ -25,6 +25,9 @@
 .loading__title {
   text-align: center;
   color: var(--color-light);
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 400;
+  max-width: 90%;
+  line-height: 1.4;
+  padding: 0 1rem;
 }

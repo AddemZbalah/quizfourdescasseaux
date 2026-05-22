@@ -538,6 +538,96 @@ document.addEventListener('DOMContentLoaded', () => {
   // Charger les questions au démarrage de la page
   loadAdminQuestions();
 
+  // --- GESTION DES CONFIGURATIONS DE LOADING VIA LOCALSTORAGE ---
+  function getLoadingConfig() {
+    const savedConfig = localStorage.getItem('quiz_loading_config');
+    if (savedConfig) {
+      return JSON.parse(savedConfig);
+    }
+    // Par défaut
+    return [
+      { id: Date.now(), ordre: 1, text: "La visite commence par l'étage...", active: true, is_tempo: false },
+      { id: Date.now() + 1, ordre: 6, text: "La visite continue au rez-de-chaussée...", active: true, is_tempo: false },
+      { id: Date.now() + 2, ordre: 8, text: "Direction l'exposition temporaire !", active: false, is_tempo: true }
+    ];
+  }
+
+  function saveLoadingConfig(config) {
+    localStorage.setItem('quiz_loading_config', JSON.stringify(config));
+    renderLoadingConfig();
+  }
+
+  function renderLoadingConfig() {
+    const container = document.getElementById('loadingConfigContainer');
+    const template = document.getElementById('loadingConfigTemplate');
+    if (!container || !template) return;
+
+    container.innerHTML = '';
+    const config = getLoadingConfig();
+
+    if (config.length === 0) {
+      container.innerHTML = '<p class="help-text">Aucun écran de transition configuré.</p>';
+      return;
+    }
+
+    config.forEach(item => {
+      const fragment = template.content.cloneNode(true);
+
+      const orderInput = fragment.querySelector('.loading-order-input');
+      const textInput = fragment.querySelector('.loading-text-input');
+      const activeInput = fragment.querySelector('.loading-active-input');
+      const tempoInput = fragment.querySelector('.loading-tempo-input');
+      const removeBtn = fragment.querySelector('.loading-remove-btn');
+
+      // Hydratation des données
+      orderInput.value = item.ordre;
+      textInput.value = item.text;
+      activeInput.checked = item.active;
+      tempoInput.checked = item.is_tempo;
+
+      // Événements
+      orderInput.addEventListener('change', (e) => {
+        item.ordre = parseInt(e.target.value);
+        saveLoadingConfig(config);
+      });
+      textInput.addEventListener('change', (e) => {
+        item.text = e.target.value;
+        saveLoadingConfig(config);
+      });
+      activeInput.addEventListener('change', (e) => {
+        item.active = e.target.checked;
+        saveLoadingConfig(config);
+      });
+      tempoInput.addEventListener('change', (e) => {
+        item.is_tempo = e.target.checked;
+        saveLoadingConfig(config);
+      });
+      removeBtn.addEventListener('click', () => {
+        const newConfig = config.filter(l => l.id !== item.id);
+        saveLoadingConfig(newConfig);
+      });
+
+      container.appendChild(fragment);
+    });
+  }
+
+  const addLoadingBtn = document.getElementById('addLoadingBtn');
+  if (addLoadingBtn) {
+    addLoadingBtn.addEventListener('click', () => {
+      const config = getLoadingConfig();
+      config.push({
+        id: Date.now(),
+        ordre: 1,
+        text: "Nouvel écran de transition...",
+        active: true,
+        is_tempo: false
+      });
+      saveLoadingConfig(config);
+    });
+
+    renderLoadingConfig();
+  }
+
   // Fonctions utilitaires d'affichage de messages
   function showMessage(message, type = 'error') {
     messageBox.innerText = message;

@@ -31,8 +31,27 @@
 
     window.C = {};
 
+    // --- GESTION DES CONFIGURATIONS DE LOADING VIA LOCALSTORAGE ---
+    C.getLoadingConfig = function () {
+      const savedConfig = localStorage.getItem('quiz_loading_config');
+      if (savedConfig) {
+        return JSON.parse(savedConfig);
+      }
+      // Configuration par défaut s'il n'y a rien dans le localStorage
+      return [
+        { ordre: 1, text: "La visite commence par l'étage...", active: true, is_tempo: false },
+        { ordre: 6, text: "La visite continue au rez-de-chaussée...", active: true, is_tempo: false },
+        { ordre: 8, text: "Direction l'exposition temporaire !", active: false, is_tempo: true }
+      ];
+    };
+
     C.handlerLoading = function () {
-      V.renderLoading();
+      // Pour le lancement (ordre = 1), on vérifie s'il y a un loading configuré
+      const config = C.getLoadingConfig();
+      const loading1 = config.find(l => l.ordre === 1 && l.active);
+      const startText = loading1 ? loading1.text : "La visite commence...";
+
+      V.renderLoading(startText);
       // Au bout de 4.5 secondes, on commence le fondu pour la première question
       setTimeout(() => {
         const content = document.querySelector("#content");
@@ -254,10 +273,30 @@
 
       if (nextOrder <= allQuestions.questions.length) {
         setTimeout(async () => {
-          await C.renderQuestionByOrder(nextOrder);
-          setTimeout(() => {
-            content.style.opacity = "1";
-          }, 50);
+          // Vérifier si un écran de chargement (Loading) est configuré pour cet ordre
+          const config = C.getLoadingConfig();
+          const loadingScreen = config.find(l => l.ordre === nextOrder && l.active);
+
+          if (loadingScreen) {
+            V.renderLoading(loadingScreen.text);
+
+            // Attendre 4.5 secondes puis afficher la question
+            setTimeout(() => {
+              content.style.opacity = "0";
+              setTimeout(async () => {
+                await C.renderQuestionByOrder(nextOrder);
+                setTimeout(() => {
+                  content.style.opacity = "1";
+                }, 50);
+              }, 400);
+            }, 4600);
+          } else {
+            // S'il n'y a pas d'écran de chargement, afficher directement la question
+            await C.renderQuestionByOrder(nextOrder);
+            setTimeout(() => {
+              content.style.opacity = "1";
+            }, 50);
+          }
         }, 400); // 400ms pour correspondre au CSS de base.css
       } else {
         setTimeout(() => {
@@ -396,11 +435,11 @@
       content.innerHTML = Remerciements.render();
     };
 
-    V.renderLoading = function () {
+    V.renderLoading = function (text) {
       const content = document.querySelector("#content");
       content.style.opacity = "0";
       setTimeout(() => {
-        content.innerHTML = Loading;
+        content.innerHTML = Loading.render(text);
         content.style.opacity = "1";
       }, 400);
     };
