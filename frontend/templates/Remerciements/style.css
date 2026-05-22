@@ -1,0 +1,58 @@
+.remerciements {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: fit-content;
+}
+
+.remerciements_check {
+}
+
+.remerciements__icon {
+}
+
+.remerciements_content {
+}
+
+.remerciements_title {
+}
+
+.remerciements_text {
+}
+
+.remerciements-btn {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: auto;
+  min-width: 300px;
+  height: fit-content;
+  padding: 1.5rem 2rem;
+  gap: 1rem;
+  color: var(--color-light);
+  font-family: var(--font-cabin);
+  font-size: 1.15rem;
+  background-color: var(--color-dark-blue);
+  border-radius: 15px;
+  border: none;
+  text-align: center;
+}
+
+.remerciements__buttonimg {
+  position: absolute;
+  width: auto;
+  height: 1rem;
+}
+
+.icon-left {
+  left: 3rem;
+}
+
+.icon-right {
+  right: 3rem;
+}

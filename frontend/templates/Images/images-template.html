@@ -1,0 +1,33 @@
+<section class="images">
+  <div class="images__info">
+    <h2 class="images__title">QUESTION</h2>
+    <p class="images__progress" id="progress-indicator">{{ordre}}/{{total}}</p>
+  </div>
+
+  <div class="images__card">
+    <div class="images__cont">
+      <div class="images__question">
+        <p id="question-number" class="images__number">{{ordre}}.</p>
+        <p id="question-title" class="images__intitule">{{question}}</p>
+      </div>
+      <p id="question-hint" class="images__hint">({{indice}})</p>
+    </div>
+
+    <div id="images-options-container" class="images__options">
+      {{reponses}}
+    </div>
+
+    <h2 class="images__result">{{resultat}}</h2>
+  </div>
+
+  <form action="./images-template.html" class="images__form">
+    <button type="button" class="images__button" onclick="{{handler}}">
+      {{action}}
+      <img
+        src="./frontend/assets/arrow_right.svg"
+        alt="Flèche de continuation"
+        class="images__buttonimg icon-right"
+      />
+    </button>
+  </form>
+</section>
