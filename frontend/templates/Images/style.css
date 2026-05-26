@@ -105,34 +105,47 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* Adapté pour l'image */
   width: 100%;
   height: fit-content;
   min-height: 3.375rem;
   padding: 0.8rem;
-  border: solid 2px var(--color-dark-blue);
+  border: solid 2px transparent; /* Laisse le select gérer la bordure */
   border-radius: 12px;
   gap: 10px;
+}
+
+.images__responsecont label {
+  cursor: pointer;
+  border: solid 2px var(--color-dark-blue);
+  border-radius: 12px;
+  padding: 0.5rem;
+  transition: all 0.2s;
+  display: block;
+}
+
+.images__responsecont input[type="radio"]:checked + label {
+  border-color: var(--color-brown);
+  background-color: var(--accent-selected);
+}
+
+/* Couleurs de validation */
+.qcm__responsecont--true label {
+  border-color: var(--color-true) !important;
+  background-color: var(--accent-true) !important;
+}
+
+.qcm__responsecont--false label {
+  border-color: var(--color-false) !important;
+  background-color: var(--accent-false) !important;
 }
 
 .images__reponse {
   margin: 0;
   font-size: 1rem;
-}
-
-.images__responsecont--selected {
-  border: solid 2px var(--color-brown);
-  background-color: var(--accent-selected);
-}
-
-.images__responsecont--true {
-  border: solid 2px var(--color-true);
-  background-color: var(--accent-true);
-}
-
-.images__responsecont--false {
-  border: solid 2px var(--color-false);
-  background-color: var(--accent-false);
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
 }
 
 .images__result {

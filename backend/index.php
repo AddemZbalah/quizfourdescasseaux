@@ -145,6 +145,11 @@ if (empty($remaining_path)) {
     if ($method === 'POST') {
         $authController->logout();
     }
+} elseif ($remaining_path[0] === 'upload') {
+    authorize(); // Sécurité
+    if ($method === 'POST') {
+        $controller->uploadImage();
+    }
 } elseif ($remaining_path[0] === 'me') {
     if ($method === 'GET') {
         $authController->verifyAuth();

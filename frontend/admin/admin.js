@@ -97,6 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     row.id = `answer-${answerIndex}`;
 
+    // Adapt to current type
+    const currentType = document.getElementById('type').value;
+    const input = row.querySelector('.answer-input');
+    if (currentType === 'images') {
+      input.type = 'file';
+      input.accept = 'image/*';
+    }
+
     const removeBtn = row.querySelector('.answer-remove-btn');
     const currentAnswerIndex = answerIndex;
 
@@ -116,6 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Écouteur pour le bouton "Ajouter une réponse"
   addAnswerBtn.addEventListener('click', addAnswerRow);
 
+  // Ecouteur pour changer le type d'input selon le type de question
+  document.getElementById('type').addEventListener('change', (e) => {
+    const isImages = e.target.value === 'images';
+    document.querySelectorAll('.answer-input').forEach(input => {
+      if (isImages) {
+        input.type = 'file';
+        input.accept = 'image/*';
+      } else {
+        input.type = 'text';
+        input.removeAttribute('accept');
+      }
+    });
+  });
+
   // Gérer la soumission du formulaire
   questionForm.addEventListener('submit', async (e) => {
     e.preventDefault(); // On empêche le rechargement de la page
@@ -128,43 +150,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Parcourir et récupérer les réponses dynamiques
     const reponses = [];
-    const answerRows = document.querySelectorAll('.answer-row');
+    const answerRows = Array.from(document.querySelectorAll('.answer-row'));
 
-    answerRows.forEach(row => {
-      const inputVal = row.querySelector('.answer-input').value;
-      const isCorrect = row.querySelector('.answer-correct').checked;
+    // Si c'est le type image, on upload d'abord les fichiers
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerText;
+    submitBtn.innerText = 'Traitement en cours...';
+    submitBtn.disabled = true;
 
-      if (inputVal.trim() !== '') {
-        reponses.push({
-          intitule: inputVal.trim(),
-          is_correct: isCorrect,
-          type: type // Le backend peut aussi prendre ce type
-        });
-      }
-    });
-
-    // Validation basique (au moins une réponse avec du texte)
-    if (reponses.length === 0 && type !== 'texte') {
-      showMessage("Veuillez ajouter au moins une réponse valide.", 'error');
-      return;
-    }
-
-    // 3. Préparer le Payload JSON
-    const payload = {
-      intitule: intitule,
-      indice: indice,
-      type: type,
-      reponses: reponses
-    };
-
-    // 4. Envoyer avec fetch()
     try {
-      // Afficher le bouton en mode chargement
-      const submitBtn = document.getElementById('submitBtn');
-      const originalBtnText = submitBtn.innerText;
-      submitBtn.innerText = 'Création en cours...';
-      submitBtn.disabled = true;
+      for (const row of answerRows) {
+        const input = row.querySelector('.answer-input');
+        const isCorrect = row.querySelector('.answer-correct').checked;
 
+        if (type === 'images') {
+          if (input.files.length > 0) {
+            const formData = new FormData();
+            formData.append('image', input.files[0]);
+
+            const uploadRes = await fetch(`${API_BASE_URL}/upload`, {
+              method: 'POST',
+              credentials: 'include',
+              body: formData
+            });
+            const uploadData = await uploadRes.json();
+
+            if (uploadRes.ok) {
+              reponses.push({
+                intitule: uploadData.filename, // Sauvegarde uniquement le nom
+                is_correct: isCorrect,
+                type: type
+              });
+            } else {
+              throw new Error(uploadData.error || 'Erreur lors du transfert d\'image');
+            }
+          }
+        } else {
+          const inputVal = input.value;
+          if (inputVal.trim() !== '') {
+            reponses.push({
+              intitule: inputVal.trim(),
+              is_correct: isCorrect,
+              type: type
+            });
+          }
+        }
+      }
+
+      // Validation basique (au moins une réponse avec du contenu)
+      if (reponses.length === 0 && type !== 'texte') {
+        showMessage("Veuillez ajouter au moins une réponse valide.", 'error');
+        submitBtn.innerText = originalBtnText;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // 3. Préparer le Payload JSON
+      const payload = {
+        intitule: intitule,
+        indice: indice,
+        type: type,
+        reponses: reponses
+      };
+
+      // 4. Envoyer avec fetch()
       const response = await fetch(`${API_BASE_URL}/questions`, {
         method: 'POST',
         headers: {
@@ -181,22 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
         questionForm.reset();
         answersContainer.innerHTML = '';
         addAnswerRow(); // Remet un champ vide
-        loadAdminQuestions(); // Recharger la liste en bas
+        // Check if loadAdminQuestions exists before calling it
+        if (typeof loadAdminQuestions === 'function') {
+          loadAdminQuestions(); // Recharger la liste en bas
+        }
       } else {
         showMessage(data.error || 'Erreur lors de la création de la question.', 'error');
       }
 
-      // Restaurer le bouton
-      submitBtn.innerText = originalBtnText;
-      submitBtn.disabled = false;
-
     } catch (error) {
       console.error(error);
-      showMessage('Impossible de joindre le serveur Backend.', 'error');
-
-      document.getElementById('submitBtn').innerText = 'Enregistrer la question';
-      document.getElementById('submitBtn').disabled = false;
+      showMessage(error.message || 'Impossible de joindre le serveur Backend.', 'error');
     }
+
+    // Restaurer le bouton
+    submitBtn.innerText = originalBtnText;
+    submitBtn.disabled = false;
   });
 
   // ========== GESTION DE L'AFFICHAGE DES QUESTIONS ==========
@@ -546,9 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Par défaut
     return [
-      { id: Date.now(), ordre: 1, text: "La visite commence par l'étage...", active: true, is_tempo: false },
-      { id: Date.now() + 1, ordre: 6, text: "La visite continue au rez-de-chaussée...", active: true, is_tempo: false },
-      { id: Date.now() + 2, ordre: 8, text: "Direction l'exposition temporaire !", active: false, is_tempo: true }
+      { id: Date.now(), ordre: 1, text: "La visite commence par l'étage...", active: true },
+      { id: Date.now() + 1, ordre: 6, text: "La visite continue au rez-de-chaussée...", active: true },
+      { id: Date.now() + 2, ordre: 8, text: "Direction l'exposition temporaire !", active: false }
     ];
   }
 
@@ -576,14 +625,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const orderInput = fragment.querySelector('.loading-order-input');
       const textInput = fragment.querySelector('.loading-text-input');
       const activeInput = fragment.querySelector('.loading-active-input');
-      const tempoInput = fragment.querySelector('.loading-tempo-input');
       const removeBtn = fragment.querySelector('.loading-remove-btn');
 
       // Hydratation des données
       orderInput.value = item.ordre;
       textInput.value = item.text;
       activeInput.checked = item.active;
-      tempoInput.checked = item.is_tempo;
 
       // Événements
       orderInput.addEventListener('change', (e) => {
@@ -596,10 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       activeInput.addEventListener('change', (e) => {
         item.active = e.target.checked;
-        saveLoadingConfig(config);
-      });
-      tempoInput.addEventListener('change', (e) => {
-        item.is_tempo = e.target.checked;
         saveLoadingConfig(config);
       });
       removeBtn.addEventListener('click', () => {
@@ -619,8 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: Date.now(),
         ordre: 1,
         text: "Nouvel écran de transition...",
-        active: true,
-        is_tempo: false
+        active: true
       });
       saveLoadingConfig(config);
     });

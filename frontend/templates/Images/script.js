@@ -50,10 +50,12 @@ const Images = {
 
     if (Array.isArray(reponsesData.reponses)) {
       for (const reponse of reponsesData.reponses) {
-        reponsesHtml += repTemplate.replaceAll(
-          "{{reponse}}",
-          String(reponse.intitule ?? ""),
-        );
+        reponsesHtml += repTemplate
+          .replaceAll("{{id}}", String(reponse.id ?? Math.random().toString(36).substr(2, 9)))
+          .replaceAll(
+            "{{reponse}}",
+            String(reponse.intitule ?? ""),
+          );
       }
     }
 

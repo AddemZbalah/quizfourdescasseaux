@@ -281,6 +281,46 @@ class QuestionController {
     }
 
     /**
+     * Uploader une image
+     * POST /api/upload
+     */
+    public function uploadImage() {
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return $this->respondJson(['error' => 'Aucun fichier reçu ou erreur d\'upload'], 400);
+        }
+
+        $file = $_FILES['image'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        if (!in_array($file['type'], $allowedTypes)) {
+            return $this->respondJson(['error' => 'Type de fichier non autorisé. Uniquement JPG, PNG, GIF, WEBP.'], 400);
+        }
+
+        // Créer un nom unique pour éviter les collisions
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $newFilename = uniqid('img_') . '.' . $extension;
+        
+        // Chemin absolu vers le dossier images 
+        $targetDir = realpath(__DIR__ . '/../../frontend/assets/questions-images/');
+        if (!$targetDir) {
+            // Créer le dossier s'il n'existe pas (par sécurité)
+            mkdir(__DIR__ . '/../../frontend/assets/questions-images/', 0777, true);
+            $targetDir = realpath(__DIR__ . '/../../frontend/assets/questions-images/');
+        }
+
+        $targetFile = $targetDir . '/' . $newFilename;
+
+        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            return $this->respondJson([
+                'success' => true,
+                'filename' => $newFilename
+            ]);
+        } else {
+            return $this->respondJson(['error' => 'Erreur lors de la sauvegarde du fichier sur le serveur'], 500);
+        }
+    }
+
+    /**
      * Répondre avec JSON et headers CORS
      */
     private function respondJson($data, $statusCode = 200) {
