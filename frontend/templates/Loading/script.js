@@ -1,5 +1,6 @@
+const timestamp = Date.now();
 const templateFile = await fetch(
-  "./frontend/templates/Loading/loading-template.html",
+  `./frontend/templates/Loading/loading-template.html?v=${timestamp}`,
 );
 const template = await templateFile.text();
 

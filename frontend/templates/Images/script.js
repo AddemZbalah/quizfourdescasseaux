@@ -1,7 +1,8 @@
 import { API } from "../../lib/api.js";
 
+const timestamp = Date.now();
 const template = await fetch(
-  "/Quiz/frontend/templates/Images/images-template.html",
+  `/Quiz/frontend/templates/Images/images-template.html?v=${timestamp}`,
 )
   .then((response) => {
     if (!response.ok) throw new Error("");
@@ -12,7 +13,7 @@ const template = await fetch(
   });
 
 const repTemplate = await fetch(
-  "/Quiz/frontend/templates/Images/images-reponse-template.html",
+  `/Quiz/frontend/templates/Images/images-reponse-template.html?v=${timestamp}`,
 )
   .then((response) => {
     if (!response.ok) throw new Error("");
@@ -77,6 +78,7 @@ const Images = {
       )
       .replaceAll("({{indice}})", indiceText)
       .replaceAll("{{reponses}}", reponsesHtml)
+      .replaceAll("{{resultat}}", "")
       .replaceAll("{{action}}", "Valider")
       .replaceAll(
         "{{handler}}",

@@ -10,9 +10,13 @@ async function fetchJsonWithFallback(path) {
   let lastResponse = null;
 
   for (const baseUrl of API_BASE_URLS) {
-    const url = `${baseUrl}${path}`;
+    // Ajout d'un cache-buster pour recharger systématiquement la DB, contournant le cache agressif des mobiles.
+    const separator = path.includes("?") ? "&" : "?";
+    const cacheBuster = `nocache=${Date.now()}`;
+    const url = `${baseUrl}${path}${separator}${cacheBuster}`;
+
     console.log("[API] GET", url);
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
     console.log("[API] status", response.status, url);
 
     if (response.ok) {

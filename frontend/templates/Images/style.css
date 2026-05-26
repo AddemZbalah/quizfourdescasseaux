@@ -130,12 +130,12 @@
 }
 
 /* Couleurs de validation */
-.qcm__responsecont--true label {
+.images__responsecont--true label {
   border-color: var(--color-true) !important;
   background-color: var(--accent-true) !important;
 }
 
-.qcm__responsecont--false label {
+.images__responsecont--false label {
   border-color: var(--color-false) !important;
   background-color: var(--accent-false) !important;
 }
@@ -149,10 +149,11 @@
 }
 
 .images__result {
-  display: none;
+  display: block; /* Modifié pour garder la cohérence et l'espace transparent si vide via textContent="" */
   font-size: 1.5rem;
   font-weight: 700;
   text-transform: uppercase;
+  margin-top: 20px;
 }
 
 .images__result--true {

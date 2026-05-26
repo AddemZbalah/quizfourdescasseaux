@@ -6,7 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz Four des Casseaux</title>
   <link rel="icon" href="./frontend/assets/logo.svg" type="image/x-icon" />
-  <link href="./frontend/css/base.css" rel="stylesheet" />
+  <link id="base-css" rel="stylesheet" />
+  <script>
+    // Force CSS Cache-Busting
+    document.getElementById('base-css').href = "./frontend/css/base.css?v=" + Date.now();
+  </script>
 </head>
 
 <body>
@@ -161,11 +165,8 @@
             const nUser = normalize(userText);
             const nDb = normalize(dbText);
 
-            // 1. Correspondance exacte après nettoyage
+            // 1. Correspondance exacte après nettoyage (minuscule, sans accents ni déterminants)
             if (nUser === nDb) return true;
-            // 2. Si le mot est assez long, on accepte des inclusions (ex: "temperature" dans "c'est la temperature")
-            if (nUser.length >= 4 && nDb.includes(nUser)) return true;
-            if (nDb.length >= 4 && nUser.includes(nDb)) return true;
 
             return false;
           }
@@ -269,15 +270,31 @@
           }
 
           const responseCont = selectedInput.closest(".images__responsecont");
+          const resultEl = document.querySelector(".images__result");
+          const selectedLabel = responseCont ? responseCont.querySelector("label") : null;
 
           if (isCorrect) {
-            if (responseCont) responseCont.classList.add("qcm__responsecont--true");
-            // Optionnel : ajouter style inline si la classe n'existe pas en CSS pour 'images'
-            if (responseCont) responseCont.style.border = "3px solid green";
+            if (responseCont) responseCont.classList.add("images__responsecont--true");
+            if (selectedLabel) {
+              selectedLabel.style.borderColor = "var(--color-true)";
+              selectedLabel.style.backgroundColor = "var(--accent-true)";
+            }
+
+            if (resultEl) {
+              resultEl.textContent = "Bonne réponse !";
+              resultEl.className = "images__result images__result--true";
+            }
           } else {
-            if (responseCont) responseCont.classList.add("qcm__responsecont--false");
-            // Optionnel : ajouter style
-            if (responseCont) responseCont.style.border = "3px solid red";
+            if (responseCont) responseCont.classList.add("images__responsecont--false");
+            if (selectedLabel) {
+              selectedLabel.style.borderColor = "var(--color-false)";
+              selectedLabel.style.backgroundColor = "var(--accent-false)";
+            }
+
+            if (resultEl) {
+              resultEl.textContent = "Mauvaise réponse !";
+              resultEl.className = "images__result images__result--false";
+            }
           }
         }
 
@@ -423,13 +440,24 @@
         const imageBtn = document.querySelector(".images__button");
         // On enlève les couleurs de validation et la classe selected
         document.querySelectorAll(".images__responsecont").forEach(cont => {
-          cont.classList.remove("qcm__responsecont--true", "qcm__responsecont--false", "images__responsecont--selected");
+          cont.classList.remove("images__responsecont--true", "images__responsecont--false", "images__responsecont--selected");
           cont.style.border = "";
+          const label = cont.querySelector("label");
+          if (label) {
+            label.style.borderColor = "";
+            label.style.backgroundColor = "";
+          }
         });
 
         // On décoche l'input radio pour retirer l'état css :checked
         const checkedRadio = document.querySelector('input[name="image-choice"]:checked');
         if (checkedRadio) checkedRadio.checked = false;
+
+        const imgResultEl = document.querySelector(".images__result");
+        if (imgResultEl) {
+          imgResultEl.textContent = "";
+          imgResultEl.className = "images__result";
+        }
 
         if (imageBtn) {
           imageBtn.disabled = false;

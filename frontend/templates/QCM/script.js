@@ -1,6 +1,7 @@
 import { API } from "../../lib/api.js";
 
-const template = await fetch("/Quiz/frontend/templates/QCM/qcm-template.html")
+const timestamp = Date.now();
+const template = await fetch(`/Quiz/frontend/templates/QCM/qcm-template.html?v=${timestamp}`)
   .then((response) => {
     if (!response.ok) throw new Error("");
     return response.text();
@@ -10,7 +11,7 @@ const template = await fetch("/Quiz/frontend/templates/QCM/qcm-template.html")
   });
 
 const repTemplate = await fetch(
-  "/Quiz/frontend/templates/QCM/qcm-reponse-template.html",
+  `/Quiz/frontend/templates/QCM/qcm-reponse-template.html?v=${timestamp}`,
 )
   .then((response) => {
     if (!response.ok) throw new Error("");
@@ -73,6 +74,7 @@ const QCM = {
       )
       .replaceAll("({{indice}})", indiceText)
       .replaceAll("{{reponses}}", reponsesHtml)
+      .replaceAll("{{resultat}}", "")
       .replaceAll("{{action}}", "Valider")
       .replaceAll("{{handler}}", `C.handlerVerif(${questionIdResolved}, 'QCM')`);
 
